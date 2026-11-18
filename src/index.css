@@ -1,0 +1,1380 @@
+/* Tailwind is loaded for its Preflight reset only: this file styles the page
+   with hand-written class selectors and no utility classes. The layout depends
+   on Preflight clearing the native margins on p/h1/h2, applying box-sizing, and
+   inheriting color into links and buttons. Do not remove the import without
+   providing an equivalent reset. */
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  /* Three depths, and only three: the desktop, the panels that carry the page,
+     and the chrome that sits above them — title bars and the detail window. */
+  --bg: #080a13;
+  --surface: #0d111b;
+  --surface-hi: #171e2b;
+  /* A visible edge is what separates a window from the desktop; the hairline
+     inside a window stays quieter than the frame around it. */
+  --edge: #30394a;
+  --rule: #1a2230;
+  /* Neutral slate for row markers; the palette's blue stays reserved for
+     interactive text. */
+  --ribbon: #39455c;
+  --fg: #d5dce7;
+  --dim: #9aa5b7;
+  --dimmer: #8994a6;
+  --accent: #83d49b;
+  --path: #55b8f5;
+  /* Syntax accents: keys purple, names blue, values neutral. */
+  --key: #c49af5;
+  --blue: #55b8f5;
+  /* Chrome and metadata are monospace; the sentences a visitor actually reads
+     are not. No extra webfont: the platform's own UI face is the restrained
+     choice, and it costs no request. */
+  --sans:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --row-gap: clamp(3px, 1.4vh, 16px);
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-synthesis: none;
+}
+
+/* Every text color above is verified at 4.5:1 or better against --surface-hi,
+   the lightest background any of them is painted on. Icons are decorative and
+   exempt, which is why they keep their brand colors. */
+
+@layer base {
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    background:
+      radial-gradient(120% 70% at 50% 0%, rgba(121, 192, 255, 0.07), transparent 62%), var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  ::selection {
+    color: var(--bg);
+    background: var(--accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* ---- tiling desktop ---- */
+
+.desktop {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 14px 14px 0;
+}
+
+/* Two rows. `whoami` and `cat stack.txt` share the first column because they
+   are the two windows that need a full sentence width; the projects window
+   spans two columns so every description stays on one line. */
+.mosaic {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns:
+    minmax(20rem, 1.25fr) minmax(0, 1.18fr) minmax(0, 1.18fr)
+    minmax(15rem, 0.85fr);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "profile  projects projects experience"
+    "stack    contact  notes    interests";
+}
+
+/* With this much room all seven windows fit at once: the mosaic takes the
+   viewport, rows share it, and the page never scrolls. Below 1440x700 the
+   mosaic grows with its content instead, because seven readable windows no
+   longer fit and a window clipped without a scrollbar is worse than a page
+   that moves. */
+@media (min-width: 1440px) and (min-height: 700px) {
+  .desktop {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .mosaic {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  /* A window shorter than its content scrolls like a terminal buffer, never
+     silently clipping it. */
+  .tile-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #2b3241 transparent;
+  }
+}
+
+/* ---- tiles ---- */
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: var(--surface);
+  /* A single lit top edge gives the panel depth without a gradient or a glow,
+     and the drop shadow lifts the whole window off the desktop. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 20px 48px -30px rgba(0, 0, 0, 0.95);
+}
+
+/* The window that owns the page: a brighter frame, a ring on the portrait and a
+   larger name carry it. No extra line, no extra colour. */
+.tile--profile {
+  border-color: var(--ribbon);
+}
+
+.tile--profile .avatar {
+  box-shadow:
+    0 0 0 1px var(--edge),
+    0 0 0 3px rgba(131, 212, 155, 0.22);
+}
+
+/* Every panel keeps the same edge; the hierarchy is carried by type and
+   content, not by a heavier frame. */
+.tile--profile .ttl,
+.tile--projects .ttl {
+  color: var(--dim);
+}
+
+.tile--profile {
+  grid-area: profile;
+}
+
+.tile--projects {
+  grid-area: projects;
+}
+
+.tile--stack {
+  grid-area: stack;
+}
+
+.tile--experience {
+  grid-area: experience;
+}
+
+.tile--notes {
+  grid-area: notes;
+}
+
+.tile--interests {
+  grid-area: interests;
+}
+
+.tile--contact {
+  grid-area: contact;
+}
+
+.tile-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--rule);
+  /* Window chrome one step above the panel body: the bar reads as the frame the
+     content sits inside, not as another strip of content. */
+  background: var(--surface-hi);
+}
+
+.dots {
+  display: flex;
+  gap: 5px;
+  flex: none;
+}
+
+.dots i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ribbon);
+}
+
+.ttl {
+  overflow: hidden;
+  color: var(--dimmer);
+  font-size: 13px;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Right slot of a title bar: a live detail about what the window is doing. */
+.tile-aside {
+  overflow: hidden;
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--dimmer);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The body owns the leftover height of the window. When a window is shorter
+   than its content the body scrolls like a terminal buffer, so the page itself
+   never moves. */
+.tile-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: clamp(12px, 1.7vh, 22px) clamp(14px, 1.2vw, 24px);
+}
+
+.tile-body > ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--row-gap);
+}
+
+/* ---- icons ---- */
+
+/* One glyph box at text size. The generated SVGs paint with their own fill, so
+   they never inherit the surrounding text color. */
+.tech {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.tech svg,
+.licon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- profile ---- */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--rule);
+}
+
+.ident {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+
+/* The handle is the name; the legal name under it is a caption, not a title. */
+.head h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.realname {
+  color: var(--dimmer);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Output starts under the title bar, so the profile block is top-aligned like
+   every other window. */
+.tile--profile .tile-body {
+  gap: clamp(7px, 1.2vh, 16px);
+}
+
+.metas {
+  display: grid;
+  gap: 1px;
+}
+
+.meta {
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+/* The role is a claim about what he does; the location is a footnote. */
+.meta:first-child {
+  color: var(--dim);
+}
+
+/* `where · south america`: the label recedes, the value keeps its weight. */
+.meta--where {
+  color: var(--dim);
+}
+
+.where-k {
+  color: var(--dimmer);
+}
+
+.intro {
+  display: grid;
+  gap: 6px;
+}
+
+.about {
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.philo {
+  display: grid;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.philo-k {
+  color: var(--key);
+  font-size: 13px;
+}
+
+.philo-p {
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ---- project rows ---- */
+
+.projects {
+  margin-inline: -8px;
+}
+
+/* A row is two sibling links: the body opens the project, the mark opens the
+   repository, so neither nests inside the other. */
+.prow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 14px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  transition: background-color 140ms ease;
+}
+
+/* A faint neutral wash instead of a colored tint: enough to show which row the
+   pointer or the keyboard is on, quiet enough to stay out of the way. */
+.prow:hover,
+.prow:focus-within {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 2px 0 0 var(--ribbon);
+}
+
+.pmain {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 16px;
+}
+
+.pname {
+  color: var(--blue);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.pname::before {
+  content: "./";
+  color: var(--dimmer);
+  font-weight: 400;
+}
+
+.pdesc {
+  color: var(--dim);
+}
+
+.prow:hover .pdesc,
+.prow:focus-within .pdesc {
+  color: var(--fg);
+}
+
+.pmeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The mark inherits a dim color at rest; the brand fill baked into the SVG is a
+   presentation attribute, so this declaration wins over it. */
+.plink {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--dimmer);
+}
+
+.plink:hover,
+.plink:focus-visible {
+  color: var(--fg);
+}
+
+.plink svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+/* ---- stack: a configuration file ---- */
+
+/* `bat -p stack.toml`: plain output, still highlighted, no numbers and no file
+   header. A table name owns its own line, the values under it wrap as one line
+   of text, and the section rhythm comes from the same gap every other list on
+   the page uses — so the tile reads as six short lines, not one long file. */
+.conf {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Seven tables in a 350px window: the page's roomy list rhythm is one step too
+   generous here, so the stack takes a tighter one and keeps all seven on screen
+   without a scrollbar. */
+.tile-body > .conf {
+  gap: 10px;
+}
+
+/* One value never splits across two lines: `T3 Code` is a tool, not two. */
+.conf-item {
+  white-space: nowrap;
+}
+
+/* Tables in the syntax accent, values in body text, the dots a step back so the
+   names read as the list they are. */
+.c-table {
+  color: var(--key);
+}
+
+.c-punc {
+  color: var(--dimmer);
+}
+
+/* ---- placeholders ---- */
+
+/* Nothing is claimed here: the section exists, the content does not. The rail
+   and the hollow node are a git graph with no commits yet — an honest empty
+   state that still belongs to the same language as the rest of the page. */
+.empty {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 20px;
+}
+
+.empty::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  bottom: 2px;
+  left: 4px;
+  border-left: 1px dashed var(--edge);
+}
+
+/* The experience window is a log with no commits: the rail runs the full height
+   of the panel so the empty space reads as the log itself, not as a gap, and
+   the pointer to the data file closes the window like a footer. */
+.tile--experience .empty {
+  height: 100%;
+}
+
+.tile--experience .empty-src {
+  margin-top: auto;
+}
+
+.tile--experience .empty::before {
+  bottom: 0;
+}
+
+.empty::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--ribbon);
+  border-radius: 50%;
+}
+
+.empty-h {
+  color: var(--dim);
+  font-size: 14px;
+}
+
+.empty-p {
+  max-width: 42ch;
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.empty-src {
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.empty-src a {
+  color: var(--blue);
+}
+
+.empty-src a:hover {
+  color: var(--fg);
+}
+
+/* ---- experience entries (rendered once EXPERIENCE is filled) ---- */
+
+/* A git log. The date rides on the organization line rather than owning a
+   column: in a 262px window that column cost every detail line 59px, which is
+   what forced titles onto a second row. Each entry opens its own window. */
+.log > li {
+  border-radius: 4px;
+}
+
+.log-main {
+  display: block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  transition: background-color 140ms ease;
+}
+
+/* Four entries share a 283px body at the tightest viewport: the log takes the
+   narrowest gap of any list, which also suits a commit log. */
+.tile-body > .log {
+  gap: 4px;
+}
+
+.logrow:hover,
+.logrow:focus-within {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 2px 0 0 var(--ribbon);
+}
+
+.log-head {
+  display: block;
+}
+
+.log-period {
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.log-org {
+  color: var(--blue);
+}
+
+.log-role,
+.log-kind {
+  display: block;
+}
+
+.log-role {
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.log-kind {
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+/* ---- notes (rendered once NOTES is filled) ---- */
+
+.notes > li {
+  display: grid;
+  gap: 2px;
+  padding-block: 4px;
+}
+
+.note-date {
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.note-title {
+  color: var(--blue);
+}
+
+/* ---- interests ---- */
+
+/* `nvim interests.md`: a topic and the line that explains it. No marker in
+   front — the accent on the topic and the step the sentence hangs from are the
+   structure, which is what keeps five paragraphs from reading as one block. */
+.interests {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Five entries, each three lines: the page's list rhythm is one step too roomy
+   for the narrowest panel. */
+.tile-body > .interests {
+  gap: 9px;
+}
+
+.interests li {
+  display: grid;
+}
+
+/* Same accent the stack tables and the purpose line use: a label inside a file. */
+.int-name {
+  color: var(--key);
+  font-weight: 500;
+}
+
+/* The sentence hangs one step in, so the block has an edge instead of a flat
+   left margin. */
+.int-note {
+  padding-left: 12px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+/* ---- contact ---- */
+
+.links {
+  margin-inline: -8px;
+}
+
+/* Icon plus the channel itself: the name is already in the link. The copy
+   button is a sibling, never nested inside the anchor. */
+.links > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.links > li:hover,
+.links > li:focus-within {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.links a {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 0 12px;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 4px;
+}
+
+/* Quiet until the row is touched, and never narrower than a comfortable
+   target. */
+.copy {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-right: 6px;
+  flex: none;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dimmer);
+  cursor: pointer;
+}
+
+.copy svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.copy:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fg);
+}
+
+/* One visually hidden live region for the whole list. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.licon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.lval {
+  overflow: hidden;
+  color: var(--fg);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.links a:hover .lval {
+  border-bottom-color: var(--dim);
+}
+
+/* ---- status bar ---- */
+
+/* Pinned to the bottom edge of the viewport while the desktop scrolls, like a
+   tmux status line. */
+.statusbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: none;
+  margin-top: 4px;
+  padding: 10px 2px 8px;
+  border-top: 1px solid var(--edge);
+  background: var(--bg);
+  font-size: 13px;
+}
+
+/* The right end of the bar carries real information only: the environment, the
+   shortcut that opens the palette, and the local time. */
+.clock {
+  flex: none;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.pal-hint {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dimmer);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease;
+}
+
+.pal-hint:hover {
+  border-color: var(--ribbon);
+  color: var(--fg);
+}
+
+/* ---- command palette ---- */
+
+/* The Raycast idea reduced to what this page needs: a field, a list, no chrome.
+   It floats above every window because it is the one surface that can act on
+   all of them. */
+.palette-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  padding: min(16vh, 150px) 16px 16px;
+  background: rgba(4, 6, 12, 0.72);
+}
+
+.palette {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--surface-hi);
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.98);
+}
+
+/* The caret is the affordance here too: the palette is already the focused
+   surface, so a ring around its field would only add a second box. */
+.palette-input {
+  flex: none;
+  padding: 14px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.palette-input::placeholder {
+  color: var(--dimmer);
+}
+
+.palette-list {
+  max-height: min(46vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ribbon) transparent;
+}
+
+.palette-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  color: var(--dim);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.palette-item[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 2px 0 0 var(--ribbon);
+  color: var(--fg);
+}
+
+.palette-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.palette-group {
+  flex: none;
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.palette-empty {
+  padding: 16px;
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+/* ---- terminal ---- */
+
+/* A command surface, not a shell: the form owns the prompt, the input sits in
+   the same line, and the scrollback floats above the bar so it never moves the
+   mosaic. */
+.term {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: text;
+}
+
+.term-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  line-height: inherit;
+  caret-color: var(--accent);
+}
+
+/* The placeholder exists only to let CSS know the field is empty. */
+.term-input::placeholder {
+  color: transparent;
+}
+
+/* The caret is the indicator. A terminal never draws a box around its prompt,
+   and the field already sits inside the bar that owns it — a ring here reads as
+   a text box pasted onto a shell. Keyboard focus stays visible through the
+   blinking caret, which is the one signal this surface is supposed to have. */
+.term-input:focus-visible {
+  outline: none;
+}
+
+.term .caret {
+  margin: 0 7px;
+}
+
+.term:focus-within .caret,
+.term:has(.term-input:not(:placeholder-shown)) .caret {
+  opacity: 0;
+}
+
+.term-log {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  left: 0;
+  max-height: min(34vh, 300px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 24px 60px -40px rgba(0, 0, 0, 0.9);
+  scrollbar-width: thin;
+  scrollbar-color: #2b3241 transparent;
+}
+
+.term-line {
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.term-line--cmd {
+  color: var(--fg);
+}
+
+.term-line--out {
+  color: var(--dim);
+}
+
+.term-line--err {
+  color: var(--fg);
+}
+
+.ctx {
+  margin-left: auto;
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.path {
+  color: var(--path);
+}
+
+.dollar {
+  margin-left: 2px;
+  color: var(--accent);
+}
+
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 13px;
+  margin-left: 7px;
+  vertical-align: -2px;
+  background: var(--accent);
+  animation: blink 1.1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---- project window ---- */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  /* Nearly opaque: the desktop behind is context, not content. */
+  background: rgba(3, 5, 11, 0.94);
+}
+
+.viewer-win {
+  display: flex;
+  flex-direction: column;
+  width: min(780px, 100%);
+  max-height: min(820px, calc(100dvh - 48px));
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  /* The detail window is the one surface that floats above every panel. */
+  background: var(--surface-hi);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 48px 100px -40px rgba(0, 0, 0, 0.98);
+}
+
+/* The window takes focus on open so the dialog is announced; the border is the
+   affordance, so no outline is drawn on the container itself. */
+.viewer-win:focus {
+  outline: none;
+}
+
+.vpath {
+  overflow: hidden;
+  flex: 1 1 auto;
+  color: var(--dimmer);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.vclose {
+  flex: none;
+  padding: 4px 11px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dim);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.vclose:hover {
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--fg);
+}
+
+.viewer-body {
+  overflow-y: auto;
+  padding: clamp(18px, 2.4vh, 28px) clamp(18px, 2vw, 30px) 26px;
+  overscroll-behavior: contain;
+}
+
+.vprompt {
+  color: var(--dimmer);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.vtitle {
+  margin-top: 20px;
+  color: var(--fg);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.vhash {
+  margin-right: 8px;
+  color: var(--dimmer);
+  font-weight: 400;
+}
+
+.vtagline {
+  margin-top: 2px;
+  color: var(--dim);
+  font-size: 14px;
+}
+
+.vmeta {
+  margin-top: 2px;
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+/* Each contribution reads as `label: text`, the label in the syntax accent. */
+.vlabel {
+  color: var(--key);
+}
+
+.vlabel::after {
+  content: ": ";
+  color: var(--dimmer);
+}
+
+.vpending {
+  margin-top: 26px;
+  padding-left: 12px;
+  border-left: 1px solid var(--rule);
+  color: var(--dimmer);
+  font-size: 13px;
+}
+
+.vsec {
+  margin-top: 22px;
+}
+
+.vsec-h {
+  margin-bottom: 6px;
+  color: var(--key);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.vtext {
+  color: var(--fg);
+  font-size: 14px;
+}
+
+.vtext + .vtext {
+  margin-top: 8px;
+}
+
+.vstack {
+  color: var(--fg);
+}
+
+.vcode {
+  max-width: 100%;
+  margin-top: 8px;
+  padding-left: 14px;
+  overflow-x: auto;
+  border-left: 1px solid var(--rule);
+  color: var(--dim);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.vactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 28px;
+  font-size: 14px;
+}
+
+.vact {
+  color: var(--blue);
+}
+
+.vact:hover {
+  color: var(--fg);
+}
+
+.vprompt--end {
+  margin-top: 26px;
+}
+
+/* ---- two columns ---- */
+
+@media (max-width: 1100px) {
+  .mosaic {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    grid-template-areas:
+      "profile     projects"
+      "experience  projects"
+      "stack       contact"
+      "notes       interests";
+  }
+}
+
+/* ---- single column ---- */
+
+@media (max-width: 760px) {
+  .desktop {
+    padding: 10px;
+  }
+
+  .mosaic {
+    align-content: start;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      "profile"
+      "projects"
+      "experience"
+      "stack"
+      "contact"
+      "notes"
+      "interests";
+  }
+
+  .tile-body {
+    overflow-y: visible;
+  }
+
+  .mosaic > .tile {
+    box-shadow: none;
+  }
+
+  /* Two rows: the name shares a line with its marks, the description gets the
+     full width underneath. */
+  .pmain {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .prow {
+    align-items: start;
+  }
+
+  .pmeta {
+    align-self: start;
+    padding-top: 4px;
+  }
+
+  .links a {
+    padding: 8px;
+  }
+
+  .copy {
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
+  }
+
+  /* Anything under 16px makes iOS zoom the page when the field takes focus. */
+  .term-input {
+    font-size: 16px;
+  }
+
+  /* The bar has to fit the prompt and the field; the environment line is the
+     first thing to go. */
+  .ctx {
+    display: none;
+  }
+
+  .clock {
+    display: none;
+  }
+
+  /* Anything under 16px makes iOS zoom the page when the field takes focus. */
+  .term-input,
+  .palette-input {
+    font-size: 16px;
+  }
+
+  .palette-scrim {
+    padding: 8vh 10px 10px;
+  }
+
+  .term-log {
+    max-height: 52vh;
+    padding: 10px 12px;
+  }
+
+  .copy svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Comfortable targets for touch: the links are ~40px tall and the close key
+     reads as a key cap instead of a label. */
+  .vclose {
+    min-height: 36px;
+    padding: 7px 14px;
+  }
+
+  .viewer {
+    padding: 0;
+  }
+
+  .viewer-win {
+    width: 100%;
+    height: 100dvh;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .viewer-body {
+    padding: 16px 16px 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .caret {
+    animation: none;
+  }
+}
+
+/* ---- short viewports ---- */
+
+/* A laptop with browser chrome leaves ~710px. Rather than let a window scroll,
+   the rhythm tightens: line height, gaps and body padding all shrink a step. */
+@media (max-height: 800px) {
+  :root {
+    --row-gap: 7px;
+  }
+
+  body {
+    line-height: 1.55;
+  }
+
+  .tile-body {
+    padding: 10px 16px;
+  }
+
+  .tile--profile .tile-body {
+    gap: 5px;
+  }
+
+  .tile--profile .avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .head h1 {
+    font-size: 20px;
+  }
+
+  .about,
+  .philo-p {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .conf {
+    line-height: 1.25;
+  }
+
+  /* Seven sections and a short window: the last step of the rhythm goes too. */
+  .tile-body > .conf {
+    gap: 5px;
+  }
+
+  /* The log carries the most lines in the smallest window; it takes the
+     tightest leading that still reads. */
+  .log {
+    line-height: 1.35;
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "title": "4nddrs",
+  "description": "Andrés Menchaca (4nddrs) — Systems Engineer specializing in Python backend and high-performance architectures. Linux-first, building scalable APIs and CLI tools.",
+  "language": "en",
+  "robots": {
+    "index": true
+  },
+  "icons": {
+    "icon": "/favicon.png"
+  },
+  "openGraph": {
+    "image": "/4nddrs-avatar.jpg"
+  },
+  "accessibility": {
+    "addBypassLinks": true,
+    "ignoreReducedMotion": false
+  }
+}
