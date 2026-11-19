@@ -251,3 +251,26 @@ export function IconFile() {
     </svg>
   );
 }
+
+/* Two marks for the folders that have no brand: a chip for applied AI and a
+   four-point spark for agentic work. They paint with currentColor so the tree
+   can keep them at the chrome tier. */
+export function IconCpu() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path
+        fillRule="evenodd"
+        d="M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm1 4v10h10V7H7z"
+      />
+      <path d="M8 1h2v2H8V1zm6 0h2v2h-2V1zM8 21h2v2H8v-2zm6 0h2v2h-2v-2zM1 8h2v2H1V8zm0 6h2v2H1v-2zM21 8h2v2h-2V8zm0 6h2v2h-2v-2z" />
+    </svg>
+  );
+}
+
+export function IconSparkle() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2z" />
+    </svg>
+  );
+}

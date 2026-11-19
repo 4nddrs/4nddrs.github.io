@@ -1,19 +1,9 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import {
-  EXPERIENCE,
-  IDENTITY,
-  INTERESTS,
-  LINKS,
-  NOTES,
-  PROJECTS,
-  STACK,
-  roleSlug,
-} from "./content";
+import { EXPERIENCE, IDENTITY, INTERESTS, LINKS, PROJECTS, STACK, roleSlug } from "./content";
 import { ExperienceView } from "./ExperienceView";
 import { Palette } from "./Palette";
 import { ProjectView } from "./ProjectView";
-import { Terminal } from "./Terminal";
 import { Icon } from "./TechIcon";
 
 const PROJECT_BY_SLUG = new Map(PROJECTS.map((project) => [project.slug, project]));
@@ -25,7 +15,12 @@ const STACK_ITEMS = STACK.reduce((total, section) => total + section.items.lengt
 
 type Target = { kind: "project" | "experience"; slug: string } | null;
 
-const X_URL = "https://x.com/4nddrs";
+/* An employment kind belongs in the tag, next to the year. Anything else in that
+   field is the domain of the role and reads better on the summary line. */
+const EMPLOYMENT = new Set(["freelance", "internship", "full-time", "contract"]);
+
+/* The pill is narrow: the word goes in, the fact stays. */
+const SHORT_KIND: Record<string, string> = { internship: "intern" };
 
 /* The open window is the URL hash, so a detail view is linkable, survives a
    reload, and answers the back button without a router. Project and experience
@@ -211,212 +206,244 @@ export default function App() {
   return (
     <main className="desktop">
       <div className="mosaic">
-        <Tile command="whoami" area="profile">
-          <div className="head">
-            <img
-              className="avatar"
-              src="/4nddrs-avatar.jpg"
-              alt=""
-              width={184}
-              height={184}
-              decoding="async"
-            />
-            <div className="ident">
-              <h1>{IDENTITY.handle}</h1>
-              <p className="realname">{IDENTITY.name}</p>
-            </div>
-          </div>
-          <div className="metas">
-            <p className="meta">{IDENTITY.role}</p>
-            <p className="meta meta--where">
-              <span className="where-k">where</span> · {IDENTITY.where}
-            </p>
-          </div>
-          <div className="intro">
-            {IDENTITY.intro.map((line) => (
-              <p className="about" key={line}>
-                {line}
-              </p>
-            ))}
-          </div>
-          <div className="philo">
-            <p className="philo-k">~/philosophy</p>
-            <p className="philo-p">{IDENTITY.philosophy}</p>
-          </div>
-        </Tile>
-
-        <Tile
-          command="ls ~/projects"
-          area="projects"
-          aside={preview ? `~/projects/${preview}` : `${PROJECTS.length} projects`}
-        >
-          <ul className="projects">
-            {PROJECTS.map((project) => (
-              <li
-                className="prow"
-                key={project.slug}
-                onMouseEnter={() => setPreview(project.slug)}
-                onMouseLeave={() => setPreview(null)}
-                onFocus={() => setPreview(project.slug)}
-                onBlur={() => setPreview(null)}
-              >
-                <a className="pmain" href={`#${project.slug}`}>
-                  <span className="pname">{project.name}</span>
-                  <span className="pdesc">{project.blurb}</span>
-                </a>
-                <span className="pmeta">
-                  <span
-                    className="tags"
-                    role="img"
-                    aria-label={project.tags.map((tag) => tag.name).join(", ")}
-                  >
-                    {project.tags.map((tag) => (
-                      <Icon key={tag.id} id={tag.id} />
-                    ))}
+        <div className="mosaic-col">
+          <Tile command="whoami" area="profile">
+            <div className="head">
+              <img
+                className="avatar"
+                src="/4nddrs-avatar.jpg"
+                alt=""
+                width={184}
+                height={184}
+                decoding="async"
+              />
+              <div className="ident">
+                <h1>
+                  {IDENTITY.handle}
+                  <span className="handle-caret" aria-hidden="true">
+                    _
                   </span>
-                  <a
-                    className="plink"
-                    href={project.repo}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`${project.name} on GitHub`}
-                  >
-                    <Icon id="github" />
-                  </a>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Tile>
-
-        <Tile command="bat -p stack.toml" area="stack" aside={`${STACK_ITEMS} tools`}>
-          <ul className="conf">
-            {STACK.map((section) => (
-              <li key={section.section}>
-                <h3 className="c-table">[{section.section}]</h3>
-                <p>
-                  {section.items.map((item, index) => (
-                    <Fragment key={item}>
-                      {index > 0 ? <span className="c-punc">{"\u00a0\u00b7 "}</span> : null}
-                      <span className="conf-item">{item}</span>
-                    </Fragment>
-                  ))}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </Tile>
-
-        <Tile
-          command="git log --experience"
-          area="experience"
-          aside={`${EXPERIENCE.length} entries`}
-        >
-          {EXPERIENCE.length === 0 ? (
-            <div className="empty">
-              <p className="empty-h">no entries yet</p>
-              <p className="empty-p">organization, role, dates, contributions</p>
-              <p className="empty-src">content.ts → EXPERIENCE</p>
+                </h1>
+                <p className="realname">{IDENTITY.name}</p>
+              </div>
             </div>
-          ) : (
-            <ul className="log">
-              {EXPERIENCE.map((entry) => (
-                <li className="logrow" key={`${entry.org}-${entry.period}`}>
-                  <a className="log-main" href={`#${roleSlug(entry)}`}>
-                    <span className="log-head">
-                      <span className="log-org">{entry.org}</span>
-                      <span className="log-period">
-                        {" \u00b7 "}
-                        {entry.short}
-                      </span>
-                    </span>
-                    <span className="log-role">{entry.title}</span>
-                    <span className="log-kind">{entry.kind}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Tile>
-
-        <Tile command="./connect.sh" area="contact" aside={`${LINKS.length} channels`}>
-          <ul className="links">
-            {LINKS.map((link) => (
-              <li className="linkrow" key={link.key}>
-                <a
-                  href={link.href}
-                  {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
-                  {...(link.download ? { download: true } : {})}
-                >
-                  <Icon id={link.icon} className="licon" />
-                  <span className="lval">{link.value}</span>
-                </a>
-                <button
-                  type="button"
-                  className="copy"
-                  aria-label={`Copy ${link.value} to clipboard`}
-                  onClick={() => copyLink(link)}
-                >
-                  {copied === link.key ? <CheckGlyph /> : <CopyGlyph />}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <p className="sr-only" aria-live="polite">
-            {announce}
-          </p>
-        </Tile>
-
-        <Tile
-          command="bat notes.md"
-          area="notes"
-          aside={NOTES.length ? `${NOTES.length} notes` : "empty"}
-        >
-          {NOTES.length === 0 ? (
-            <div className="empty">
-              <p className="empty-h">no notes published yet</p>
-              <p className="empty-p">backend architecture, linux automation, api design</p>
-              <p className="empty-src">
-                updates:{" "}
-                <a href={X_URL} target="_blank" rel="noreferrer">
-                  x.com/4nddrs
-                </a>
+            <div className="metas">
+              <p className="meta">
+                {IDENTITY.role}
+                {IDENTITY.tags.map((tag) => (
+                  <span className="tag" key={tag}>
+                    {" · "}
+                    {tag}
+                  </span>
+                ))}
+              </p>
+              <p className="meta meta--where">
+                <span className="where-k">where</span> ·{" "}
+                <span className="place">{IDENTITY.where}</span>
               </p>
             </div>
-          ) : (
-            <ul className="notes">
-              {NOTES.map((note) => (
-                <li key={note.href}>
-                  <span className="note-date">{note.date}</span>
-                  <a className="note-title" href={note.href} target="_blank" rel="noreferrer">
-                    {note.title}
+            {/* The current role, read from content.ts: a status line, not a badge. */}
+            <p className="status">
+              <span className="status-dot" aria-hidden="true" />
+              building ai &amp; robotics tooling
+            </p>
+            <div className="intro">
+              {IDENTITY.intro.map((line) => (
+                <p className="about" key={line}>
+                  {line}
+                </p>
+              ))}
+            </div>
+            <div className="philo">
+              <p className="philo-k">~/philosophy</p>
+              <p className="philo-p">{IDENTITY.philosophy}</p>
+            </div>
+          </Tile>
+          <Tile command="tree ~/stack" area="stack" aside={`${STACK_ITEMS} tools`}>
+            <div className="tree">
+              <p className="tree-root">~/stack</p>
+              <ul className="tree-list">
+                {STACK.map((section) => (
+                  <li className="tree-row" key={section.section}>
+                    {/* The elbow is drawn, not typed: the spine is one element, so
+                                              it stays continuous no matter how far apart the rows land. */}
+                    <span className="tree-graph" aria-hidden="true" />
+                    <span className="tree-label">
+                      <Icon id={section.icon} className="tech tree-icon" />
+                      <h3 className="tree-dir">{section.section}/</h3>
+                    </span>
+                    <p className="tree-values">
+                      {section.items.map((item, position) => (
+                        <Fragment key={item}>
+                          {position > 0 ? (
+                            <span className="tree-sep">{"\u00a0\u00b7 "}</span>
+                          ) : null}
+                          {item}
+                        </Fragment>
+                      ))}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              {/* The line `tree` prints when it finishes, derived from the same
+                                        data so it cannot drift. */}
+              <p className="tree-summary">
+                {STACK.length} directories, {STACK_ITEMS} tools
+              </p>
+            </div>
+          </Tile>
+        </div>
+        <div className="mosaic-col">
+          <Tile
+            command="ls ~/projects"
+            area="projects"
+            aside={preview ? `~/projects/${preview}` : `${PROJECTS.length} projects`}
+          >
+            <ul className="projects">
+              {PROJECTS.map((project) => (
+                <li
+                  className="prow"
+                  key={project.slug}
+                  onMouseEnter={() => setPreview(project.slug)}
+                  onMouseLeave={() => setPreview(null)}
+                >
+                  <a
+                    className="pmain"
+                    href={`#${project.slug}`}
+                    onFocus={() => setPreview(project.slug)}
+                    onBlur={() => setPreview(null)}
+                  >
+                    <span className="pname">{project.name}</span>
+                    <span className="pdesc">{project.blurb}</span>
                   </a>
+                  <span className="pmeta">
+                    <span className="ptag">[{project.tag}]</span>
+                    <a
+                      className="parrow"
+                      href={project.repo}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`${project.name} on GitHub`}
+                    >
+                      <Icon id="github" />
+                    </a>
+                  </span>
                 </li>
               ))}
             </ul>
-          )}
-        </Tile>
-
-        <Tile command="nvim interests.md" area="interests" aside={`${INTERESTS.length} topics`}>
-          <ul className="interests">
-            {INTERESTS.map((interest) => (
-              <li key={interest.name}>
-                <span className="int-name">{interest.name}</span>
-                <span className="int-note">{interest.note}</span>
-              </li>
-            ))}
-          </ul>
-        </Tile>
+          </Tile>
+          <Tile command="./connect.sh" area="contact" aside={`${LINKS.length} channels`}>
+            <ul className="links">
+              {LINKS.map((link) => (
+                <li className="linkrow" key={link.key}>
+                  <a
+                    href={link.href}
+                    {...(link.external ? { target: "_blank", rel: "noreferrer" } : {})}
+                    {...(link.download ? { download: true } : {})}
+                  >
+                    <Icon id={link.icon} className="licon" />
+                    <span className="lval">{link.value}</span>
+                  </a>
+                  <button
+                    type="button"
+                    className="copy"
+                    aria-label={`Copy ${link.value} to clipboard`}
+                    onClick={() => copyLink(link)}
+                  >
+                    {copied === link.key ? <CheckGlyph /> : <CopyGlyph />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="sr-only" aria-live="polite">
+              {announce}
+            </p>
+          </Tile>
+        </div>
+        <div className="mosaic-col">
+          <Tile command="git log" area="experience" aside={`${EXPERIENCE.length} entries`}>
+            {EXPERIENCE.length === 0 ? (
+              <div className="empty">
+                <p className="empty-h">no entries yet</p>
+                <p className="empty-p">organization, role, dates, contributions</p>
+                <p className="empty-src">content.ts → EXPERIENCE</p>
+              </div>
+            ) : (
+              <ul className="log">
+                {EXPERIENCE.map((entry, index) => {
+                  const employment = EMPLOYMENT.has(entry.kind);
+                  return (
+                    <li
+                      className={`logrow${index === 0 ? " logrow--head" : ""}`}
+                      key={`${entry.org}-${entry.period}`}
+                    >
+                      <a className="log-main" href={`#${roleSlug(entry)}`}>
+                        <span className="log-head">
+                          <span className="log-org">{entry.org}</span>
+                          <span className="log-tag">
+                            {employment
+                              ? `(${entry.short} · ${SHORT_KIND[entry.kind] ?? entry.kind})`
+                              : `(${entry.short})`}
+                          </span>
+                          {index === 0 ? <span className="log-head-tag">(HEAD)</span> : null}
+                        </span>
+                        <span className="log-sub">
+                          {employment ? entry.title : `${entry.title} · ${entry.kind}`}
+                        </span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Tile>
+          <Tile command="nvim interests.md" area="interests" aside={`${INTERESTS.length} topics`}>
+            {/* A markdown buffer: gutter number, the `##` a heading keeps in
+                                      source, and its note as a list item with a hanging indent so the
+                                      wrapped line sits under the text and not under the bullet. The row
+                                      is the hover target the way CursorLine covers the row. */}
+            <ul className="md">
+              {INTERESTS.map((interest, index) => (
+                <li className="md-line" key={interest.name}>
+                  <span className="md-num" aria-hidden="true">
+                    {index + 1}
+                  </span>
+                  <div className="md-body">
+                    <p className="md-head">
+                      <span className="md-hash" aria-hidden="true">
+                        {"## "}
+                      </span>
+                      {interest.name}
+                    </p>
+                    <p className="md-text">
+                      <span className="md-bullet" aria-hidden="true">
+                        {"\u21b3 "}
+                      </span>
+                      {interest.note}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {/* lualine: a mode block, the buffer, the file type and the count,
+                with the angled segments the real statusline draws. */}
+            <p className="md-status">
+              <span className="md-seg md-seg--light">NORMAL</span>
+              <span className="md-seg">
+                <span className="md-flag" aria-hidden="true">
+                  {"\u2039"}
+                </span>
+                interests.md
+              </span>
+              <span className="md-seg md-seg--right">markdown</span>
+              <span className="md-seg md-seg--light">{INTERESTS.length}L</span>
+            </p>
+          </Tile>
+        </div>
       </div>
-
-      <Terminal
-        onOpenProject={(slug) => (window.location.hash = slug)}
-        onOpenPalette={openPalette}
-      />
 
       {openProject ? <ProjectView project={openProject} onClose={closeProject} /> : null}
       {openRole ? <ExperienceView role={openRole} onClose={closeProject} /> : null}
-
       <Palette open={palette} onClose={closePalette} />
     </main>
   );

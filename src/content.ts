@@ -7,12 +7,14 @@ export const IDENTITY = {
   /* The handle is the name on the page; the legal name sits under it, smaller. */
   handle: "4nddrs",
   name: "Andrés Menchaca",
-  role: "systems engineer · backend · linux-first",
+  role: "systems engineer",
+  /* The tags the header prints after the role, in the syntax accent. */
+  tags: ["backend", "linux-first"],
   where: "south america",
+  /* Two lines, no greeting: the name is already two centimetres above. */
   intro: [
-    "Hey, I'm Andrés.",
     "I enjoy understanding how things work and building software that makes them work better.",
-    "I'm interested in backend engineering, Linux, system architecture, automation and the intersection of software and AI.",
+    "Backend engineering, Linux, system architecture, automation and the intersection of software and AI.",
   ],
   philosophy: "I like simple solutions to complex problems.",
 };
@@ -34,7 +36,8 @@ export type Project = {
   tagline: string;
   repo: string;
   demo?: string;
-  tags: TechTag[];
+  /* The one tag the row prints after the description, in `ls -lh` style. */
+  tag: string;
   sections: ProjectSection[];
   stack: string[];
 };
@@ -47,7 +50,7 @@ export const PROJECTS: Project[] = [
     tagline: "Keyboard-driven TUI client for OpenAPI 3.x.",
     repo: "https://github.com/4nddrs/snag",
     demo: "https://snag-tui.netlify.app/",
-    tags: [{ id: "go", name: "Go" }],
+    tag: "go",
     sections: [
       {
         title: "overview",
@@ -86,13 +89,10 @@ ui.go     Lip Gloss panels`,
   {
     slug: "mkf",
     name: "mkf",
-    blurb: "Scaffolds a modular FastAPI service.",
+    blurb: "Modular FastAPI scaffolder.",
     tagline: "FastAPI project scaffolder.",
     repo: "https://github.com/4nddrs/mkf",
-    tags: [
-      { id: "python", name: "Python" },
-      { id: "fastapi", name: "FastAPI" },
-    ],
+    tag: "fastapi",
     sections: [
       {
         title: "overview",
@@ -135,13 +135,10 @@ tests/test_main.py`,
   {
     slug: "smart-gym",
     name: "smart-gym",
-    blurb: "Three services, face-recognition check-in.",
+    blurb: "Gym check-in by face recognition.",
     tagline: "Gym management with facial recognition.",
     repo: "https://github.com/4nddrs/smart-gym",
-    tags: [
-      { id: "python", name: "Python" },
-      { id: "react", name: "React" },
-    ],
+    tag: "py·react",
     sections: [
       {
         title: "overview",
@@ -178,10 +175,10 @@ tests/test_main.py`,
   {
     slug: "eppCheck",
     name: "eppCheck",
-    blurb: "YOLOv8 PPE detection on live video.",
+    blurb: "PPE detection on live video.",
     tagline: "Real-time PPE detection for construction sites.",
     repo: "https://github.com/4nddrs/eppCheck",
-    tags: [{ id: "python", name: "Python" }],
+    tag: "yolov8",
     sections: [
       {
         title: "overview",
@@ -213,13 +210,10 @@ tests/test_main.py`,
   {
     slug: "backend-Country",
     name: "backend-Country",
-    blurb: "Equestrian ERP: inventory and billing.",
+    blurb: "Equestrian ERP: stock & billing.",
     tagline: "Equestrian ERP backend, built with clean architecture.",
     repo: "https://github.com/4nddrs/backend-Country",
-    tags: [
-      { id: "python", name: "Python" },
-      { id: "postgresql", name: "PostgreSQL" },
-    ],
+    tag: "postgres",
     sections: [
       {
         title: "overview",
@@ -268,13 +262,10 @@ services → Telegram
   {
     slug: "linux-config",
     name: "linux-config",
-    blurb: "Sway, Waybar and LazyVim dotfiles.",
+    blurb: "Sway, Waybar, LazyVim dotfiles.",
     tagline: "A keyboard-driven Wayland workstation.",
     repo: "https://github.com/4nddrs/linux-config",
-    tags: [
-      { id: "linux", name: "Linux" },
-      { id: "neovim", name: "Neovim" },
-    ],
+    tag: "dotfiles",
     sections: [
       {
         title: "overview",
@@ -313,22 +304,23 @@ services → Telegram
   },
 ];
 
-/* The stack, grouped the way a person reads it: a table name and one line of
-   values under it. Keys, brackets, quotes and line numbers all went — they made
-   the file look like a config dump instead of a list someone could read. */ export type StackSection =
-  {
-    section: string;
-    items: string[];
-  };
+/* The stack as a directory tree: a folder and the tools it holds. */
+export type StackSection = {
+  section: string;
+  /* Which mark the folder carries: a brand icon where one exists, a geometric
+     one where it does not. */
+  icon: string;
+  items: string[];
+};
 
 export const STACK: StackSection[] = [
-  { section: "backend_engineering", items: ["Python", "Go", "FastAPI", "Flask"] },
-  { section: "data_and_storage", items: ["PostgreSQL", "MongoDB", "Firebase"] },
-  { section: "systems_and_infrastructure", items: ["Linux", "Docker", "Kubernetes"] },
-  { section: "applied_ai", items: ["PyTorch", "OpenCV", "Computer Vision"] },
-  { section: "frontend_engineering", items: ["TypeScript", "React", "Astro", "Vite"] },
-  { section: "development_workflow", items: ["Neovim", "Bash", "Git"] },
-  { section: "agentic_engineering", items: ["Pi", "OpenCode", "T3 Code"] },
+  { section: "backend", icon: "python", items: ["Python", "Go", "FastAPI", "Flask"] },
+  { section: "data", icon: "postgresql", items: ["PostgreSQL", "MongoDB", "Firebase"] },
+  { section: "infra", icon: "linux", items: ["Linux", "Docker", "Kubernetes"] },
+  { section: "applied-ai", icon: "cpu", items: ["PyTorch", "OpenCV", "CV"] },
+  { section: "frontend", icon: "react", items: ["TypeScript", "React", "Astro", "Vite"] },
+  { section: "workflow", icon: "neovim", items: ["Neovim", "Bash", "Git"] },
+  { section: "agentic", icon: "sparkle", items: ["Pi", "OpenCode", "T3 Code"] },
 ];
 
 /* Professional experience, given by the owner from his LinkedIn profile and,
@@ -358,7 +350,9 @@ export const EXPERIENCE: Role[] = [
   {
     org: "Ninescale",
     title: "software developer",
-    kind: "robotics \u00b7 ai tools \u00b7 teams",
+    /* The row prints title · kind on one line, so this holds the headline only;
+       the rest of the scope lives in the summary below. */
+    kind: "robotics",
     short: "2026",
     period: "2026 \u2013 present",
     /* He described the role in conversation but LinkedIn carries no summary
@@ -419,19 +413,15 @@ export const EXPERIENCE: Role[] = [
   },
 ];
 
-export const NOTES: { title: string; date: string; href: string }[] = [];
-
-/* Interests are a note file: a topic, then the line that explains why it is
-   here. The closing line is the page's own voice, not a claim about anyone. */
+/* A markdown buffer: a heading and one line of keywords under it. The line has to
+   fit the narrowest column on one row, so it carries two terms instead of three. */
 export const INTERESTS: { name: string; note: string }[] = [
-  { name: "agentic systems", note: "How agents reason, collaborate and build things." },
-  { name: "developer tooling", note: "Building tools that make developers more effective." },
-  { name: "systems architecture", note: "Simple, reliable systems that scale with purpose." },
-  {
-    name: "applied ai & robotics",
-    note: "Bringing intelligence closer to the physical world.",
-  },
-  { name: "automation", note: "Reproducible workflows and less friction." },
+  { name: "agentic systems", note: "orchestration · tool-use" },
+  { name: "applied ai & robotics", note: "real2sim · world models" },
+  { name: "developer tooling", note: "cli harnesses · automation" },
+  { name: "systems architecture", note: "distributed · reliability" },
+  { name: "linux & automation", note: "reproducible · dotfiles" },
+  { name: "software engineering", note: "clean architecture · tests" },
 ];
 
 /* Environment shown in the status bar, taken from linux-config: Sway on Linux,

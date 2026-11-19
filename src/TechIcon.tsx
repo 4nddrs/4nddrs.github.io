@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import {
+  IconCpu,
   IconFastapi,
   IconFile,
   IconGithub,
@@ -11,12 +12,14 @@ import {
   IconPostgresql,
   IconPython,
   IconReact,
+  IconSparkle,
   IconX,
 } from "./icons";
 
 /* Only the glyphs the page renders are imported, so the rest of the generated
    set is tree-shaken out of the bundle. */
 const ICONS: Record<string, () => ReactElement> = {
+  cpu: IconCpu,
   fastapi: IconFastapi,
   file: IconFile,
   github: IconGithub,
@@ -28,6 +31,7 @@ const ICONS: Record<string, () => ReactElement> = {
   postgresql: IconPostgresql,
   python: IconPython,
   react: IconReact,
+  sparkle: IconSparkle,
   x: IconX,
 };
 

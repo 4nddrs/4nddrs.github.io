@@ -3,43 +3,69 @@
    on Preflight clearing the native margins on p/h1/h2, applying box-sizing, and
    inheriting color into links and buttons. Do not remove the import without
    providing an equivalent reset. */
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap");
 @import "tailwindcss";
+
+/* mononoki, self-hosted: two weights, latin subset, no third-party request and
+   no render-blocking CSS hop. The two files are the only binaries the page
+   loads. mononoki is by Matthias Tellen, SIL Open Font License 1.1. */
+@font-face {
+  font-family: "mononoki";
+  src: url("/fonts/mononoki-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "mononoki";
+  src: url("/fonts/mononoki-400-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "mononoki";
+  src: url("/fonts/mononoki-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   color-scheme: dark;
-  /* Three depths, and only three: the desktop, the panels that carry the page,
-     and the chrome that sits above them — title bars and the detail window. */
-  --bg: #080a13;
-  --surface: #0d111b;
-  --surface-hi: #171e2b;
-  /* A visible edge is what separates a window from the desktop; the hairline
-     inside a window stays quieter than the frame around it. */
-  --edge: #30394a;
-  --rule: #1a2230;
-  /* Neutral slate for row markers; the palette's blue stays reserved for
-     interactive text. */
-  --ribbon: #39455c;
-  --fg: #d5dce7;
-  --dim: #9aa5b7;
-  --dimmer: #8994a6;
-  --accent: #83d49b;
-  --path: #55b8f5;
-  /* Syntax accents: keys purple, names blue, values neutral. */
-  --key: #c49af5;
-  --blue: #55b8f5;
-  /* Chrome and metadata are monospace; the sentences a visitor actually reads
-     are not. No extra webfont: the platform's own UI face is the restrained
-     choice, and it costs no request. */
-  --sans:
-    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
+  /* Near-black, one step per surface. Very little light in any of them, and
+     what light there is sits in the blue channel. */
+  --bg-canvas: #06070b;
+  --bg-pane: #0b0e17;
+  --bg-pane-hi: #10141f;
+  --border-pane: #1c2231;
+  /* Hairlines inside a pane stay quieter than the frame around it. */
+  --rule: #141926;
+  --ribbon: #232a3a;
+  /* Text: four steps, each one measured against the lightest surface. */
+  --text-main: #e6e9f0;
+  --text-soft: #c3c9d8;
+  --text-muted: #8b93a9;
+  --text-dim: #7f889d;
+  /* Accents: azure carries structure, paths and the handle; violet the pill
+     badges; gold years and keys; rose the people. */
+  --accent-azure: #8fb6f0;
+  --accent-violet: #b3adf0;
+  --accent-gold: #e5c07b;
+  --accent-rose: #e79aa4;
+  /* The badge: a slightly bluer slab than the pane it sits on. */
+  --pill: #171c2b;
+  --pill-edge: #262e44;
   --row-gap: clamp(3px, 1.4vh, 16px);
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* One knob for the whole page: the layout never changes shape, the type scales
+     with the width of the monitor. 15px at ~1460, 11px at the narrow end. */
+  font-size: clamp(11px, 1.03vw, 19px);
+  font-family: "mononoki", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-synthesis: none;
 }
 
-/* Every text color above is verified at 4.5:1 or better against --surface-hi,
+/* Every text color above is verified at 4.5:1 or better against --bg-pane-hi,
    the lightest background any of them is painted on. Icons are decorative and
    exempt, which is why they keep their brand colors. */
 
@@ -48,10 +74,11 @@
     min-width: 320px;
     min-height: 100dvh;
     background:
-      radial-gradient(120% 70% at 50% 0%, rgba(121, 192, 255, 0.07), transparent 62%), var(--bg);
-    color: var(--fg);
-    font-size: 14px;
-    line-height: 1.7;
+      radial-gradient(120% 70% at 50% 0%, rgba(56, 189, 248, 0.06), transparent 62%),
+      var(--bg-canvas);
+    color: var(--text-main);
+    font-size: 1rem;
+    line-height: 1.75;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -63,12 +90,12 @@
   }
 
   ::selection {
-    color: var(--bg);
-    background: var(--accent);
+    color: var(--bg-canvas);
+    background: var(--accent-azure);
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--accent-azure);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -80,39 +107,62 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  padding: 14px 14px 0;
+  padding: 14px;
 }
 
-/* Two rows. `whoami` and `cat stack.txt` share the first column because they
-   are the two windows that need a full sentence width; the projects window
-   spans two columns so every description stays on one line. */
+/* Three columns of windows. Each panel is exactly as tall as its own text — the
+   identity column carries the prose, the middle one the project list, the right
+   one the short entries — so nothing is clipped and nothing is padded to match a
+   neighbour. */
 .mosaic {
+  --gap: 14px;
+  display: grid;
+  /* The identity column carries the widest prose in the page, so it takes the
+     room the project list does not need once its descriptions fit on one line. */
+  grid-template-columns: minmax(20rem, 0.33fr) minmax(0, 0.43fr) minmax(17rem, 0.24fr);
+  gap: var(--gap);
+  /* The row takes the height the desktop gives it, so the windows fill the
+     viewport instead of stopping where their text ends. */
+  align-content: stretch;
+  align-items: stretch;
   flex: 1 1 auto;
   min-height: 0;
-  display: grid;
-  gap: 12px;
-  grid-template-columns:
-    minmax(20rem, 1.25fr) minmax(0, 1.18fr) minmax(0, 1.18fr)
-    minmax(15rem, 0.85fr);
-  grid-template-rows: auto auto;
-  grid-template-areas:
-    "profile  projects projects experience"
-    "stack    contact  notes    interests";
 }
 
-/* With this much room all seven windows fit at once: the mosaic takes the
-   viewport, rows share it, and the page never scrolls. Below 1440x700 the
-   mosaic grows with its content instead, because seven readable windows no
-   longer fit and a window clipped without a scrollbar is worse than a page
-   that moves. */
+/* The panels keep their own height and the leftover is spent between them, which
+   is what closes the hole under the shortest column. In the identity column the
+   two windows stack tight instead: `stack` climbs until it touches `whoami`, and
+   what is left over stays at the foot of the column. */
+.mosaic-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Every window grows: the pair in a column shares whatever height the column was
+   given, so no column ends short and no band of desktop is left at the foot. */
+.mosaic-col > .tile {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* The identity window is already the fullest of the six, so it stays at its own
+   height and lets `stack` take the column's leftover. Growing it only added
+   distance between the bio and the closing quote. */
+.mosaic-col > .tile--profile {
+  flex-grow: 0;
+}
+
+/* With this much room the canvas takes the viewport and the windows float on it.
+   Below 1440x700 the mosaic grows with its content instead, because six readable
+   windows no longer fit and a window clipped without a scrollbar is worse than a
+   page that moves. */
 @media (min-width: 1440px) and (min-height: 700px) {
   .desktop {
     height: 100dvh;
     overflow: hidden;
-  }
-
-  .mosaic {
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   /* A window shorter than its content scrolls like a terminal buffer, never
@@ -133,9 +183,9 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--edge);
+  border: 1px solid var(--border-pane);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--bg-pane);
   /* A single lit top edge gives the panel depth without a gradient or a glow,
      and the drop shadow lifts the whole window off the desktop. */
   box-shadow:
@@ -151,7 +201,7 @@
 
 .tile--profile .avatar {
   box-shadow:
-    0 0 0 1px var(--edge),
+    0 0 0 1px var(--border-pane),
     0 0 0 3px rgba(131, 212, 155, 0.22);
 }
 
@@ -159,35 +209,7 @@
    content, not by a heavier frame. */
 .tile--profile .ttl,
 .tile--projects .ttl {
-  color: var(--dim);
-}
-
-.tile--profile {
-  grid-area: profile;
-}
-
-.tile--projects {
-  grid-area: projects;
-}
-
-.tile--stack {
-  grid-area: stack;
-}
-
-.tile--experience {
-  grid-area: experience;
-}
-
-.tile--notes {
-  grid-area: notes;
-}
-
-.tile--interests {
-  grid-area: interests;
-}
-
-.tile--contact {
-  grid-area: contact;
+  color: var(--text-muted);
 }
 
 .tile-bar {
@@ -199,7 +221,7 @@
   border-bottom: 1px solid var(--rule);
   /* Window chrome one step above the panel body: the bar reads as the frame the
      content sits inside, not as another strip of content. */
-  background: var(--surface-hi);
+  background: var(--bg-pane-hi);
 }
 
 .dots {
@@ -218,8 +240,8 @@
 
 .ttl {
   overflow: hidden;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
   font-weight: 400;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -230,8 +252,8 @@
   overflow: hidden;
   margin-left: auto;
   padding-left: 12px;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -240,11 +262,13 @@
    than its content the body scrolls like a terminal buffer, so the page itself
    never moves. */
 .tile-body {
+  --pad-y: clamp(12px, 1.7vh, 22px);
+  --pad-x: clamp(14px, 1.2vw, 24px);
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  padding: clamp(12px, 1.7vh, 22px) clamp(14px, 1.2vw, 24px);
+  padding: var(--pad-y) var(--pad-x);
 }
 
 .tile-body > ul {
@@ -283,9 +307,11 @@
   width: 46px;
   height: 46px;
   flex: none;
+  /* Discreet: the accent at a third of its strength, so the ring reads as a rim
+     and not as a second element competing with the name. */
+  border: 1.5px solid rgba(143, 182, 240, 0.35);
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 0 0 1px var(--rule);
 }
 
 .ident {
@@ -296,15 +322,22 @@
 
 /* The handle is the name; the legal name under it is a caption, not a title. */
 .head h1 {
-  font-size: 24px;
+  color: var(--accent-azure);
+  font-size: 1.733rem;
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.1;
 }
 
+/* The block cursor of the terminal, sitting after the handle. The keyframes are
+   the same ones the prompt uses, so both blink in the same rhythm. */
+.handle-caret {
+  animation: blink 1.1s steps(1) infinite;
+}
+
 .realname {
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-soft);
+  font-size: 0.933rem;
   line-height: 1.4;
 }
 
@@ -320,106 +353,165 @@
 }
 
 .meta {
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 /* The role is a claim about what he does; the location is a footnote. */
 .meta:first-child {
-  color: var(--dim);
+  color: var(--text-soft);
+}
+
+/* The tags are the syntax of that line, in the accent that means "key". */
+.tag {
+  color: var(--accent-gold);
+}
+
+.place {
+  color: var(--accent-rose);
 }
 
 /* `where · south america`: the label recedes, the value keeps its weight. */
 .meta--where {
-  color: var(--dim);
+  color: var(--text-muted);
 }
 
 .where-k {
-  color: var(--dimmer);
+  color: var(--text-dim);
 }
 
+/* A status line, not a badge: one dot in the live accent and one short claim. */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.867rem;
+  line-height: 1.5;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent-azure);
+}
+
+/* Two paragraphs of prose need a paragraph break, not a line break: 6px read as
+   one block of text with a hole in the middle. */
 .intro {
   display: grid;
-  gap: 6px;
+  gap: 16px;
 }
 
+/* The whole page is one face. The prose keeps the body size and only its colour
+   separates it from the chrome. */
 .about {
-  color: var(--fg);
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.6;
+  color: var(--text-main);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
+/* The quote closes the panel: it sits at the foot of its window, so the space
+   the intro does not use reads as a footer and not as a hole. */
 .philo {
   display: grid;
   gap: 2px;
-  padding-top: 2px;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .philo-k {
-  color: var(--key);
-  font-size: 13px;
+  color: var(--accent-azure);
+  font-size: 0.933rem;
 }
 
 .philo-p {
-  color: var(--fg);
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.6;
+  color: var(--text-main);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 /* ---- project rows ---- */
 
+/* One line per project, the way `ls -lh` prints a table: a fixed name column, the
+   description taking the rest, the tag and the link at the end. */
 .projects {
   margin-inline: -8px;
 }
 
-/* A row is two sibling links: the body opens the project, the mark opens the
-   repository, so neither nests inside the other. */
+.tile--projects .projects {
+  flex: 1 1 auto;
+  justify-content: space-between;
+}
+
 .prow {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0 14px;
-  padding: 5px 8px;
+  padding: 5px 8px 5px 20px;
   border-radius: 4px;
   transition: background-color 140ms ease;
 }
 
-/* A faint neutral wash instead of a colored tint: enough to show which row the
-   pointer or the keyboard is on, quiet enough to stay out of the way. */
+/* The selection character of the row under the pointer, in the personal accent.
+   Reserved, so nothing moves when it appears. */
+.prow::before {
+  content: "\276F";
+  position: absolute;
+  left: 6px;
+  color: var(--accent-rose);
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
 .prow:hover,
 .prow:focus-within {
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow: inset 2px 0 0 var(--ribbon);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.prow:hover::before,
+.prow:focus-within::before {
+  opacity: 1;
 }
 
 .pmain {
   display: grid;
-  grid-template-columns: 10rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: baseline;
-  gap: 0 16px;
+  /* The name grew a step, so the gap shrinks one to leave the description the
+     width it had: raising both would have started cutting the blurbs. */
+  gap: 0 12px;
+  min-width: 0;
 }
 
 .pname {
-  color: var(--blue);
-  font-size: 15px;
+  color: var(--accent-azure);
+  font-size: 1.067rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .pname::before {
   content: "./";
-  color: var(--dimmer);
+  color: var(--text-dim);
   font-weight: 400;
 }
 
+/* One line, always: the column decides where it ends, not the sentence. */
 .pdesc {
-  color: var(--dim);
+  overflow: hidden;
+  color: var(--text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .prow:hover .pdesc,
 .prow:focus-within .pdesc {
-  color: var(--fg);
+  color: var(--text-soft);
 }
 
 .pmeta {
@@ -428,65 +520,139 @@
   gap: 12px;
 }
 
-.tags {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* The stack as a CLI tag, in the accent that means syntax. */
+.ptag {
+  padding: 0 0.5em;
+  border: 1px solid var(--pill-edge);
+  border-radius: 999px;
+  background: var(--pill);
+  color: var(--accent-violet);
+  white-space: nowrap;
 }
 
-/* The mark inherits a dim color at rest; the brand fill baked into the SVG is a
+/* The mark inherits the row's colour: the brand fill baked into the SVG is a
    presentation attribute, so this declaration wins over it. */
-.plink {
+.parrow {
   display: inline-flex;
   width: 16px;
   height: 16px;
   flex: none;
-  color: var(--dimmer);
+  color: var(--text-dim);
+  transition: color 140ms ease;
 }
 
-.plink:hover,
-.plink:focus-visible {
-  color: var(--fg);
-}
-
-.plink svg {
+.parrow svg {
   display: block;
   width: 100%;
   height: 100%;
   fill: currentColor;
 }
 
-/* ---- stack: a configuration file ---- */
+.prow:hover .parrow,
+.parrow:focus-visible {
+  color: var(--accent-azure);
+}
 
-/* `bat -p stack.toml`: plain output, still highlighted, no numbers and no file
-   header. A table name owns its own line, the values under it wrap as one line
-   of text, and the section rhythm comes from the same gap every other list on
-   the page uses — so the tile reads as six short lines, not one long file. */
-.conf {
-  font-size: 13px;
+/* ---- stack: a directory tree ---- */
+
+.tree {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  font-size: 0.933rem;
   line-height: 1.45;
 }
 
-/* Seven tables in a 350px window: the page's roomy list rhythm is one step too
-   generous here, so the stack takes a tighter one and keeps all seven on screen
-   without a scrollbar. */
-.tile-body > .conf {
-  gap: 10px;
+/* The root owns the full width, the way `tree` prints it. */
+.tree-root {
+  color: var(--accent-azure);
 }
 
-/* One value never splits across two lines: `T3 Code` is a tool, not two. */
-.conf-item {
+/* One grid for every branch, so the folder and the tools line up as two columns
+   across all seven rows. The first column takes its 140px floor and only grows
+   for the longest folder name — a fixed 140 would push `applied-ai/` into the
+   values on a 14px font. */
+.tree-list {
+  position: relative;
+  display: grid;
+  flex: 1 1 auto;
+  grid-template-columns: 1.2em max-content minmax(0, 1fr);
+  column-gap: 1em;
+  row-gap: 6px;
+  /* Seven folders over the height the pane has: the leftover becomes distance
+     between branches instead of a block of nothing before the closing line. */
+  align-content: space-between;
+}
+
+/* One spine for the whole tree, from just under `~/stack` down to the centre of
+   the last branch. Drawing it here and not per row is what keeps it unbroken
+   when the rows are far apart. */
+.tree-list::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0.725em;
+  left: 0;
+  width: 1px;
+  background: var(--text-dim);
+}
+
+/* A row is not a box: it dissolves into the list's own grid. */
+.tree-row {
+  display: contents;
+}
+
+/* Sits on the first line of its row, where the tick is — not centred in the whole
+   row. A row whose values wrap is two lines tall, and centring the folder in it
+   left the name floating between them, off its own connector. */
+.tree-label {
+  display: flex;
+  align-self: start;
+  align-items: center;
+  gap: 0.35em;
+  min-width: 0;
+}
+
+/* Each branch draws only its horizontal tick, level with its first line. */
+.tree-graph {
+  position: relative;
+}
+
+.tree-graph::before {
+  content: "";
+  position: absolute;
+  top: 0.725em;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--text-dim);
+}
+
+.tree-icon {
+  color: var(--text-dim);
+}
+
+/* Folders are the categories of the file, so they take the syntax accent; the
+   cyan is kept for paths and the handle. */
+.tree-dir {
+  color: var(--accent-gold);
+  font-weight: 400;
   white-space: nowrap;
 }
 
-/* Tables in the syntax accent, values in body text, the dots a step back so the
-   names read as the list they are. */
-.c-table {
-  color: var(--key);
+.tree-values {
+  color: var(--text-muted);
 }
 
-.c-punc {
-  color: var(--dimmer);
+.tree-sep {
+  color: var(--text-dim);
+}
+
+/* What `tree` prints when it finishes: a fixed breath under the last branch,
+   because the list now fills the pane itself. */
+.tree-summary {
+  margin-top: 12px;
+  color: var(--text-dim);
 }
 
 /* ---- placeholders ---- */
@@ -508,7 +674,7 @@
   top: 15px;
   bottom: 2px;
   left: 4px;
-  border-left: 1px dashed var(--edge);
+  border-left: 1px dashed var(--border-pane);
 }
 
 /* The experience window is a log with no commits: the rail runs the full height
@@ -538,140 +704,311 @@
 }
 
 .empty-h {
-  color: var(--dim);
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 1rem;
 }
 
 .empty-p {
   max-width: 42ch;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 .empty-src {
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 .empty-src a {
-  color: var(--blue);
+  color: var(--accent-azure);
 }
 
 .empty-src a:hover {
-  color: var(--fg);
+  color: var(--text-main);
 }
 
 /* ---- experience entries (rendered once EXPERIENCE is filled) ---- */
 
-/* A git log. The date rides on the organization line rather than owning a
-   column: in a 262px window that column cost every detail line 59px, which is
-   what forced titles onto a second row. Each entry opens its own window. */
-.log > li {
-  border-radius: 4px;
+/* `git log --graph --oneline`, in the page's own palette. Every commit draws its
+   own rail segment down to the next node, so the graph stays continuous across
+   the gap and stops exactly on the last commit — no line running past it, no line
+   broken by the spacing. */
+.tile-body > .log {
+  gap: 14px;
+}
+
+.log {
+  position: relative;
+  /* The commits keep their own rhythm: the height of the pane is not theirs to
+     spend on distance between entries. */
+  flex: 0 0 auto;
+  padding-left: 18px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.logrow {
+  position: relative;
+}
+
+/* The node, sitting on the rail at the height of the commit's first line. */
+.logrow::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: -17px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #334155;
+  box-shadow: 0 0 0 3px var(--bg-pane);
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+/* One rail for the whole log, from the centre of the first node to the centre of
+   the last. Drawn once instead of per row so it survives a distributed gap; the
+   halo around each node hides the few pixels of imprecision at its ends. */
+.log::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  bottom: calc(2.8em - 10px);
+  left: 4px;
+  width: 1px;
+  background: var(--border-pane);
+}
+
+/* The role he is in now is the head of the branch, and it glows like one. */
+.logrow--head::before {
+  background: var(--accent-azure);
+  box-shadow:
+    0 0 0 3px var(--bg-pane),
+    0 0 10px 1px rgba(56, 189, 248, 0.55);
+}
+
+/* The node is what acknowledges the pointer, the way a graph lights the commit it
+   is on. */
+.logrow:hover::before,
+.logrow:focus-within::before {
+  background: var(--accent-azure);
 }
 
 .log-main {
+  position: relative;
   display: block;
   padding: 1px 6px;
   border-radius: 4px;
   transition: background-color 140ms ease;
 }
 
-/* Four entries share a 283px body at the tightest viewport: the log takes the
-   narrowest gap of any list, which also suits a commit log. */
-.tile-body > .log {
-  gap: 4px;
-}
-
-.logrow:hover,
-.logrow:focus-within {
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow: inset 2px 0 0 var(--ribbon);
+.logrow:hover .log-main,
+.logrow:focus-within .log-main {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .log-head {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
 }
 
-.log-period {
-  color: var(--dimmer);
-  font-size: 13px;
-}
-
+/* People and organisations keep the rose accent. */
 .log-org {
-  color: var(--blue);
+  color: var(--accent-rose);
+  font-weight: 600;
 }
 
-.log-role,
-.log-kind {
-  display: block;
+/* Years and employment kinds read as git tags. */
+/* The pill stays a step under its row: it is metadata, and the smaller size is
+   what keeps `Paramo Games` and its year on one line at this width. */
+.log-tag {
+  font-size: 0.933em;
+  padding: 0 0.5em;
+  border: 1px solid var(--pill-edge);
+  border-radius: 999px;
+  background: var(--pill);
+  color: var(--accent-violet);
 }
 
-.log-role {
-  color: var(--dim);
-  font-size: 13px;
+.log-head-tag {
+  color: var(--accent-azure);
 }
 
-.log-kind {
-  color: var(--dimmer);
-  font-size: 13px;
+/* Role and domain on one line, in the reading tier. */
+.log-sub {
+  color: var(--text-muted);
 }
 
-/* ---- notes (rendered once NOTES is filled) ---- */
+/* ---- interests: a markdown buffer ---- */
 
-.notes > li {
+/* `nvim interests.md`. The gutter, the `##` a heading still shows in source, and
+   a CursorLine that lights the whole row: the three things an editor gives a
+   file that a list does not. */
+/* The entries sit together at the top; the leftover height belongs to the gap
+   above the status line, not to the space between topics. */
+.md {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 1.067rem;
+  line-height: 1.4;
+}
+
+/* The size of this pane is one number: an earlier override for narrow windows
+   silently cancelled every increase made here. */
+
+.md-line {
   display: grid;
-  gap: 2px;
-  padding-block: 4px;
+  /* The gutter only has to hold one digit: a wider one pushed every heading to
+     the right for no reason. */
+  grid-template-columns: 1.1em minmax(0, 1fr);
+  column-gap: 0.4em;
+  padding: 2px 4px 2px 0;
+  border-radius: 4px;
+  transition: background-color 140ms ease;
 }
 
-.note-date {
-  color: var(--dimmer);
-  font-size: 13px;
+.md-line:hover,
+.md-line:focus-within {
+  background: rgba(56, 189, 248, 0.06);
 }
 
-.note-title {
-  color: var(--blue);
+/* Line numbers are chrome, held to the same floor as the title bars rather than
+   to #475569, which measures 2.2:1 on this pane. */
+.md-num {
+  color: var(--text-dim);
+  text-align: right;
+  transition: color 140ms ease;
 }
 
-/* ---- interests ---- */
-
-/* `nvim interests.md`: a topic and the line that explains it. No marker in
-   front — the accent on the topic and the step the sentence hangs from are the
-   structure, which is what keeps five paragraphs from reading as one block. */
-.interests {
-  font-size: 14px;
-  line-height: 1.45;
+/* The line number is what lights up, the way a cursor line does in the editor. */
+.md-line:hover .md-num,
+.md-line:focus-within .md-num {
+  color: var(--accent-gold);
 }
 
-/* Five entries, each three lines: the page's list rhythm is one step too roomy
-   for the narrowest panel. */
-.tile-body > .interests {
-  gap: 9px;
+.md-body {
+  min-width: 0;
 }
 
-.interests li {
-  display: grid;
-}
-
-/* Same accent the stack tables and the purpose line use: a label inside a file. */
-.int-name {
-  color: var(--key);
+.md-head {
+  color: var(--text-main);
   font-weight: 500;
 }
 
-/* The sentence hangs one step in, so the block has an edge instead of a flat
-   left margin. */
-.int-note {
-  padding-left: 12px;
-  color: var(--dim);
-  font-size: 13px;
+.md-hash {
+  color: var(--accent-gold);
+}
+
+/* The bullet hangs out of the text block, so a wrapped line lines up with the
+   sentence and not with the marker. */
+.md-text {
+  padding-left: 1.1em;
+  text-indent: -1.1em;
+  color: var(--text-muted);
+}
+
+/* The arrow that opens the keyword line, in the personal accent. */
+.md-bullet {
+  color: var(--accent-rose);
+}
+
+/* lualine, drawn the way the real one is: blocks with an angled end, the next one
+   nesting into it, and the colours alternating between the mode block and the
+   neutral ones. The chevron is a clip-path, not a glyph — the font has no
+   powerline characters, so a glyph here would be a box. */
+/* Full width of the window and sitting on its bottom edge: the padding of the
+   body is cancelled on three sides, so the blocks reach the frame. */
+.md-status {
+  display: flex;
+  flex: none;
+  align-items: stretch;
+  height: 2.35em;
+  margin: auto calc(-1 * var(--pad-x)) calc(-1 * var(--pad-y));
+  padding-top: 14px;
+  font-size: 0.867rem;
+  line-height: 1;
+}
+
+.md-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0 1.25em 0 0.95em;
+  background: var(--bg-pane-hi);
+  color: var(--text-muted);
+  clip-path: polygon(0 0, calc(100% - 0.5em) 0, 100% 50%, calc(100% - 0.5em) 100%, 0 100%);
+}
+
+/* The nesting notch: the next block cuts its left edge to match the chevron that
+   the previous one left behind. */
+.md-seg + .md-seg {
+  margin-left: -0.5em;
+  padding-left: 1.35em;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 0.5em) 0,
+    100% 50%,
+    calc(100% - 0.5em) 100%,
+    0 100%,
+    0.5em 50%
+  );
+}
+
+/* The mode block: light slab, dark text, the way lualine prints NORMAL. */
+.md-seg--light {
+  background: #9db6e0;
+  color: #0b0e17;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.md-status > .md-seg--light:first-child {
+  padding-left: 1.4em;
+}
+
+.md-status > .md-seg--light:last-child {
+  padding-right: 1.4em;
+}
+
+.md-seg--right {
+  margin-left: auto;
+}
+
+.md-flag {
+  color: var(--accent-gold);
+  font-style: normal;
 }
 
 /* ---- contact ---- */
 
 .links {
   margin-inline: -8px;
+}
+
+.tile--contact .links {
+  flex: 1 1 auto;
+  justify-content: space-between;
+}
+
+/* The project list is the longest content of the pair, so it takes most of the
+   column's leftover; the five channels keep a shorter frame. */
+.mosaic-col > .tile--projects {
+  flex-grow: 1.4;
+}
+
+.mosaic-col > .tile--contact {
+  flex-grow: 0.5;
+}
+
+/* Four commits do not need to grow: the window stays at its own height and the
+   pane below takes the leftover. */
+.mosaic-col > .tile--experience {
+  flex-grow: 0;
 }
 
 /* Icon plus the channel itself: the name is already in the link. The copy
@@ -709,7 +1046,7 @@
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: var(--dimmer);
+  color: var(--text-dim);
   cursor: pointer;
 }
 
@@ -721,7 +1058,7 @@
 
 .copy:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: var(--fg);
+  color: var(--text-main);
 }
 
 /* One visually hidden live region for the whole list. */
@@ -741,67 +1078,26 @@
   flex: none;
 }
 
+/* The channel name carries no rule under it: the row already has a hover wash and
+   the copy button, so an underline only added a second, competing signal. */
 .lval {
   overflow: hidden;
-  color: var(--fg);
-  border-bottom: 1px solid var(--rule);
+  color: var(--text-main);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .links a:hover .lval {
-  border-bottom-color: var(--dim);
+  color: var(--accent-azure);
 }
 
 /* ---- status bar ---- */
 
 /* Pinned to the bottom edge of the viewport while the desktop scrolls, like a
    tmux status line. */
-.statusbar {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: none;
-  margin-top: 4px;
-  padding: 10px 2px 8px;
-  border-top: 1px solid var(--edge);
-  background: var(--bg);
-  font-size: 13px;
-}
 
 /* The right end of the bar carries real information only: the environment, the
    shortcut that opens the palette, and the local time. */
-.clock {
-  flex: none;
-  color: var(--dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.pal-hint {
-  display: inline-flex;
-  align-items: center;
-  flex: none;
-  padding: 1px 7px;
-  border: 1px solid var(--edge);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--dimmer);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.5;
-  cursor: pointer;
-  transition:
-    color 140ms ease,
-    border-color 140ms ease;
-}
-
-.pal-hint:hover {
-  border-color: var(--ribbon);
-  color: var(--fg);
-}
 
 /* ---- command palette ---- */
 
@@ -824,9 +1120,9 @@
   flex-direction: column;
   width: min(560px, 100%);
   overflow: hidden;
-  border: 1px solid var(--edge);
+  border: 1px solid var(--border-pane);
   border-radius: 10px;
-  background: var(--surface-hi);
+  background: var(--bg-pane-hi);
   box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.98);
 }
 
@@ -838,14 +1134,14 @@
   border: 0;
   border-bottom: 1px solid var(--rule);
   background: transparent;
-  color: var(--fg);
+  color: var(--text-main);
   font: inherit;
-  font-size: 15px;
+  font-size: 1.067rem;
   outline: none;
 }
 
 .palette-input::placeholder {
-  color: var(--dimmer);
+  color: var(--text-dim);
 }
 
 .palette-list {
@@ -864,8 +1160,8 @@
   gap: 16px;
   padding: 7px 10px;
   border-radius: 6px;
-  color: var(--dim);
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: 0.933rem;
   cursor: pointer;
   transition:
     background-color 120ms ease,
@@ -875,7 +1171,7 @@
 .palette-item[aria-selected="true"] {
   background: rgba(255, 255, 255, 0.06);
   box-shadow: inset 2px 0 0 var(--ribbon);
-  color: var(--fg);
+  color: var(--text-main);
 }
 
 .palette-label {
@@ -886,14 +1182,14 @@
 
 .palette-group {
   flex: none;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 .palette-empty {
   padding: 16px;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 /* ---- terminal ---- */
@@ -901,110 +1197,13 @@
 /* A command surface, not a shell: the form owns the prompt, the input sits in
    the same line, and the scrollback floats above the bar so it never moves the
    mosaic. */
-.term {
-  display: flex;
-  align-items: center;
-  flex: 1 1 auto;
-  min-width: 0;
-  cursor: text;
-}
-
-.term-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--fg);
-  font: inherit;
-  font-size: 13px;
-  line-height: inherit;
-  caret-color: var(--accent);
-}
 
 /* The placeholder exists only to let CSS know the field is empty. */
-.term-input::placeholder {
-  color: transparent;
-}
 
 /* The caret is the indicator. A terminal never draws a box around its prompt,
    and the field already sits inside the bar that owns it — a ring here reads as
    a text box pasted onto a shell. Keyboard focus stays visible through the
    blinking caret, which is the one signal this surface is supposed to have. */
-.term-input:focus-visible {
-  outline: none;
-}
-
-.term .caret {
-  margin: 0 7px;
-}
-
-.term:focus-within .caret,
-.term:has(.term-input:not(:placeholder-shown)) .caret {
-  opacity: 0;
-}
-
-.term-log {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 10px);
-  left: 0;
-  max-height: min(34vh, 300px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 12px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  background: var(--surface);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 24px 60px -40px rgba(0, 0, 0, 0.9);
-  scrollbar-width: thin;
-  scrollbar-color: #2b3241 transparent;
-}
-
-.term-line {
-  font-size: 13px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.term-line--cmd {
-  color: var(--fg);
-}
-
-.term-line--out {
-  color: var(--dim);
-}
-
-.term-line--err {
-  color: var(--fg);
-}
-
-.ctx {
-  margin-left: auto;
-  color: var(--dimmer);
-  font-size: 13px;
-}
-
-.path {
-  color: var(--path);
-}
-
-.dollar {
-  margin-left: 2px;
-  color: var(--accent);
-}
-
-.caret {
-  display: inline-block;
-  width: 7px;
-  height: 13px;
-  margin-left: 7px;
-  vertical-align: -2px;
-  background: var(--accent);
-  animation: blink 1.1s steps(1) infinite;
-}
 
 @keyframes blink {
   50% {
@@ -1031,10 +1230,10 @@
   width: min(780px, 100%);
   max-height: min(820px, calc(100dvh - 48px));
   overflow: hidden;
-  border: 1px solid var(--edge);
+  border: 1px solid var(--border-pane);
   border-radius: 8px;
   /* The detail window is the one surface that floats above every panel. */
-  background: var(--surface-hi);
+  background: var(--bg-pane-hi);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 48px 100px -40px rgba(0, 0, 0, 0.98);
@@ -1049,8 +1248,8 @@
 .vpath {
   overflow: hidden;
   flex: 1 1 auto;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -1061,16 +1260,16 @@
   border: 1px solid var(--rule);
   border-radius: 4px;
   background: transparent;
-  color: var(--dim);
+  color: var(--text-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 0.933rem;
   line-height: 1.4;
   cursor: pointer;
 }
 
 .vclose:hover {
   background: rgba(255, 255, 255, 0.045);
-  color: var(--fg);
+  color: var(--text-main);
 }
 
 .viewer-body {
@@ -1080,53 +1279,53 @@
 }
 
 .vprompt {
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
   overflow-wrap: anywhere;
 }
 
 .vtitle {
   margin-top: 20px;
-  color: var(--fg);
-  font-size: 21px;
+  color: var(--text-main);
+  font-size: 1.467rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .vhash {
   margin-right: 8px;
-  color: var(--dimmer);
+  color: var(--text-dim);
   font-weight: 400;
 }
 
 .vtagline {
   margin-top: 2px;
-  color: var(--dim);
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 1rem;
 }
 
 .vmeta {
   margin-top: 2px;
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 /* Each contribution reads as `label: text`, the label in the syntax accent. */
 .vlabel {
-  color: var(--key);
+  color: var(--accent-gold);
 }
 
 .vlabel::after {
   content: ": ";
-  color: var(--dimmer);
+  color: var(--text-dim);
 }
 
 .vpending {
   margin-top: 26px;
   padding-left: 12px;
   border-left: 1px solid var(--rule);
-  color: var(--dimmer);
-  font-size: 13px;
+  color: var(--text-dim);
+  font-size: 0.933rem;
 }
 
 .vsec {
@@ -1135,14 +1334,14 @@
 
 .vsec-h {
   margin-bottom: 6px;
-  color: var(--key);
-  font-size: 13px;
+  color: var(--accent-gold);
+  font-size: 0.933rem;
   font-weight: 500;
 }
 
 .vtext {
-  color: var(--fg);
-  font-size: 14px;
+  color: var(--text-main);
+  font-size: 1rem;
 }
 
 .vtext + .vtext {
@@ -1150,7 +1349,7 @@
 }
 
 .vstack {
-  color: var(--fg);
+  color: var(--text-main);
 }
 
 .vcode {
@@ -1159,8 +1358,8 @@
   padding-left: 14px;
   overflow-x: auto;
   border-left: 1px solid var(--rule);
-  color: var(--dim);
-  font-size: 13px;
+  color: var(--text-muted);
+  font-size: 0.933rem;
   line-height: 1.65;
 }
 
@@ -1169,15 +1368,15 @@
   flex-wrap: wrap;
   gap: 18px;
   margin-top: 28px;
-  font-size: 14px;
+  font-size: 1rem;
 }
 
 .vact {
-  color: var(--blue);
+  color: var(--accent-azure);
 }
 
 .vact:hover {
-  color: var(--fg);
+  color: var(--text-main);
 }
 
 .vprompt--end {
@@ -1186,45 +1385,29 @@
 
 /* ---- two columns ---- */
 
-@media (max-width: 1100px) {
-  .mosaic {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    grid-template-rows: repeat(4, minmax(0, 1fr));
-    grid-template-areas:
-      "profile     projects"
-      "experience  projects"
-      "stack       contact"
-      "notes       interests";
-  }
-}
-
-/* ---- single column ---- */
-
 @media (max-width: 760px) {
+  /* A phone is not a narrow monitor: there the scale stops shrinking and the
+     windows stack. */
+  :root {
+    font-size: 16px;
+  }
+
   .desktop {
     padding: 10px;
   }
 
   .mosaic {
+    --gap: 10px;
     align-content: start;
-    gap: 10px;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
-    grid-template-areas:
-      "profile"
-      "projects"
-      "experience"
-      "stack"
-      "contact"
-      "notes"
-      "interests";
   }
 
   .tile-body {
     overflow-y: visible;
   }
 
-  .mosaic > .tile {
+  .mosaic .tile {
     box-shadow: none;
   }
 
@@ -1255,33 +1438,12 @@
   }
 
   /* Anything under 16px makes iOS zoom the page when the field takes focus. */
-  .term-input {
-    font-size: 16px;
-  }
-
-  /* The bar has to fit the prompt and the field; the environment line is the
-     first thing to go. */
-  .ctx {
-    display: none;
-  }
-
-  .clock {
-    display: none;
-  }
-
-  /* Anything under 16px makes iOS zoom the page when the field takes focus. */
-  .term-input,
   .palette-input {
-    font-size: 16px;
+    font-size: 1.067rem;
   }
 
   .palette-scrim {
     padding: 8vh 10px 10px;
-  }
-
-  .term-log {
-    max-height: 52vh;
-    padding: 10px 12px;
   }
 
   .copy svg {
@@ -1341,7 +1503,8 @@
   }
 
   .tile-body {
-    padding: 10px 16px;
+    --pad-y: 10px;
+    --pad-x: 16px;
   }
 
   .tile--profile .tile-body {
@@ -1354,22 +1517,17 @@
   }
 
   .head h1 {
-    font-size: 20px;
+    font-size: 1.333rem;
   }
 
   .about,
   .philo-p {
-    font-size: 14px;
-    line-height: 1.45;
+    font-size: 1rem;
+    line-height: 1.55;
   }
 
-  .conf {
-    line-height: 1.25;
-  }
-
-  /* Seven sections and a short window: the last step of the rhythm goes too. */
-  .tile-body > .conf {
-    gap: 5px;
+  .tree {
+    line-height: 1.3;
   }
 
   /* The log carries the most lines in the smallest window; it takes the

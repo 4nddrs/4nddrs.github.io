@@ -18,10 +18,9 @@ type Command = {
 const PANELS: { area: string; label: string; command: string }[] = [
   { area: "profile", label: "About me", command: "whoami" },
   { area: "projects", label: "Projects", command: "ls ~/projects" },
-  { area: "experience", label: "Experience", command: "git log --experience" },
+  { area: "experience", label: "Experience", command: "git log" },
   { area: "stack", label: "Stack", command: "bat -p stack.toml" },
   { area: "contact", label: "Contact", command: "./connect.sh" },
-  { area: "notes", label: "Notes", command: "bat notes.md" },
   { area: "interests", label: "Interests", command: "nvim interests.md" },
 ];
 
