@@ -996,16 +996,15 @@
    nesting into it, and the colours alternating between the mode block and the
    neutral ones. The chevron is a clip-path, not a glyph — the font has no
    powerline characters, so a glyph here would be a box. */
-/* A footer of the window, not content of it: it is a child of .tile, so it spans
-   the frame and takes the tile's own rounded bottom corners. Putting it inside
-   the body would leave its right edge to whatever a scrollbar takes, which is why
-   it used to stop a strip short of the corner on platforms with classic
-   scrollbars. */
+/* Full width of the window and sitting on its bottom edge: the padding of the
+   body is cancelled on three sides, so the blocks reach the frame. */
 .md-status {
   display: flex;
   flex: none;
   align-items: stretch;
   height: 2.35em;
+  margin: auto calc(-1 * var(--pad-x)) calc(-1 * var(--pad-y));
+  padding-top: 14px;
   font-size: 0.867rem;
   line-height: 1;
 }
