@@ -310,17 +310,56 @@ export type StackSection = {
   /* Which mark the folder carries: a brand icon where one exists, a geometric
      one where it does not. */
   icon: string;
+  /* The hue the folder's name borrows from that mark, desaturated to a pastel so
+     seven folders read as seven quiet hints and not as a rainbow. It is content,
+     not chrome: a section added here gets its colour by being listed. */
+  tint: string;
   items: string[];
 };
 
 export const STACK: StackSection[] = [
-  { section: "backend", icon: "python", items: ["Python", "Go", "FastAPI", "Flask"] },
-  { section: "data", icon: "postgresql", items: ["PostgreSQL", "MongoDB", "Firebase"] },
-  { section: "infra", icon: "linux", items: ["Linux", "Docker", "Kubernetes"] },
-  { section: "applied-ai", icon: "cpu", items: ["PyTorch", "OpenCV", "CV"] },
-  { section: "frontend", icon: "react", items: ["TypeScript", "React", "Astro", "Vite"] },
-  { section: "workflow", icon: "neovim", items: ["Neovim", "Bash", "Git"] },
-  { section: "agentic", icon: "sparkle", items: ["Pi", "OpenCode", "T3 Code"] },
+  {
+    section: "backend",
+    icon: "python",
+    tint: "#87b0ef",
+    items: ["Python", "Go", "FastAPI", "Flask"],
+  },
+  {
+    section: "data",
+    icon: "postgresql",
+    tint: "#9ba4e8",
+    items: ["PostgreSQL", "MongoDB", "Firebase"],
+  },
+  {
+    section: "infra",
+    icon: "linux",
+    tint: "#dfb575",
+    items: ["Linux", "Docker", "Kubernetes"],
+  },
+  {
+    section: "applied-ai",
+    icon: "cpu",
+    tint: "#cfa8dd",
+    items: ["PyTorch", "OpenCV", "CV"],
+  },
+  {
+    section: "frontend",
+    icon: "react",
+    tint: "#8fd0e6",
+    items: ["TypeScript", "React", "Astro", "Vite"],
+  },
+  {
+    section: "workflow",
+    icon: "neovim",
+    tint: "#a3c9a4",
+    items: ["Neovim", "Bash", "Git"],
+  },
+  {
+    section: "agentic",
+    icon: "sparkle",
+    tint: "#b6b3ea",
+    items: ["Pi", "OpenCode", "T3 Code"],
+  },
 ];
 
 /* Professional experience, given by the owner from his LinkedIn profile and,

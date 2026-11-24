@@ -34,29 +34,46 @@
 
 :root {
   color-scheme: dark;
-  /* Near-black, one step per surface. Very little light in any of them, and
-     what light there is sits in the blue channel. */
-  --bg-canvas: #06070b;
-  --bg-pane: #0b0e17;
-  --bg-pane-hi: #10141f;
-  --border-pane: #1c2231;
+  /* Near-black, one step per surface. The canvas is the deepest point of the
+     page; the windows float above it on a translucent face, so the two layers
+     never collapse into one flat sheet. All the light that exists sits in the
+     blue channel. */
+  --bg-canvas: #05070a;
+  --bg-pane: #0b0f17;
+  --bg-pane-hi: #11151f;
+  /* The window face: one step of blue-black at 94%. Thin enough that the glow
+     and the grid behind it survive the blur, thick enough that no text ever
+     sees the pattern move under it. */
+  --surface-glass: rgb(11 15 23 / 0.94);
+  --surface-chrome: rgb(19 25 37 / 0.78);
+  /* A hairline of cool light instead of a gray box line: every window detaches
+     from the deep canvas without calling attention to its own frame. */
+  --border-pane: rgb(148 179 214 / 0.11);
+  --border-pane-strong: rgb(148 179 214 / 0.18);
+  /* The active-window edge of a tiling manager, held at light strength so it
+     reads as a lit frame and not as a second border. */
+  --border-active: rgb(125 207 255 / 0.38);
+  --halo-active: rgb(125 207 255 / 0.14);
   /* Hairlines inside a pane stay quieter than the frame around it. */
-  --rule: #141926;
-  --ribbon: #232a3a;
-  /* Text: four steps, each one measured against the lightest surface. */
-  --text-main: #e6e9f0;
-  --text-soft: #c3c9d8;
-  --text-muted: #8b93a9;
-  --text-dim: #7f889d;
+  --rule: #161c2a;
+  --ribbon: #2a3346;
+  /* Text: four steps, each one measured against the lightest surface. The two
+     middle tiers sit a notch higher than a pure dark theme would put them,
+     because on this canvas the small type is what carries the chrome. */
+  --text-main: #edf1f8;
+  --text-soft: #ccd3e2;
+  --text-muted: #9aa4bb;
+  --text-dim: #8d97ad;
   /* Accents: azure carries structure, paths and the handle; violet the pill
-     badges; gold years and keys; rose the people. */
-  --accent-azure: #8fb6f0;
-  --accent-violet: #b3adf0;
-  --accent-gold: #e5c07b;
-  --accent-rose: #e79aa4;
+     badges; gold years and keys; rose the people. All four sit brighter than
+     the surfaces so they stay the most alive thing on a near-black page. */
+  --accent-azure: #a8c8ff;
+  --accent-violet: #c3bcff;
+  --accent-gold: #eecd85;
+  --accent-rose: #f0a5b0;
   /* The badge: a slightly bluer slab than the pane it sits on. */
-  --pill: #171c2b;
-  --pill-edge: #262e44;
+  --pill: #151b29;
+  --pill-edge: #2b344b;
   --row-gap: clamp(3px, 1.4vh, 16px);
   /* One knob for the whole page: the layout never changes shape, the type scales
      with the width of the monitor. 15px at ~1460, 11px at the narrow end. */
@@ -73,8 +90,16 @@
   body {
     min-width: 320px;
     min-height: 100dvh;
+    /* Four layers under the windows: two very faint pools of cool light in
+       opposite corners, a dot grid at 3.5%, and the canvas itself. The grid is
+       not decoration for its own sake — it is what the translucent window face
+       blurs, so the panels read as dark frosted glass over a lit desktop and not
+       as a colour painted on another colour. */
     background:
-      radial-gradient(120% 70% at 50% 0%, rgba(56, 189, 248, 0.06), transparent 62%),
+      radial-gradient(80% 55% at 8% -10%, rgba(56, 189, 248, 0.07), transparent 62%),
+      radial-gradient(70% 52% at 94% 110%, rgba(125, 207, 255, 0.05), transparent 60%),
+      radial-gradient(circle at center, rgba(148, 179, 214, 0.035) 1px, transparent 1px) 0 0 / 26px
+        26px,
       var(--bg-canvas);
     color: var(--text-main);
     font-size: 1rem;
@@ -107,7 +132,10 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  padding: 14px;
+  /* The frame of desktop around the windows. It scales with the screen because a
+     probe of a frame on a 1440 laptop would eat content, while on a wide monitor
+     the same number is what lets the wallpaper show at all. */
+  padding: clamp(12px, 1.2vw, 24px);
 }
 
 /* Three columns of windows. Each panel is exactly as tall as its own text — the
@@ -115,7 +143,7 @@
    one the short entries — so nothing is clipped and nothing is padded to match a
    neighbour. */
 .mosaic {
-  --gap: 14px;
+  --gap: clamp(10px, 1vw, 18px);
   display: grid;
   /* The identity column carries the widest prose in the page, so it takes the
      room the project list does not need once its descriptions fit on one line. */
@@ -185,18 +213,45 @@
   overflow: hidden;
   border: 1px solid var(--border-pane);
   border-radius: 8px;
-  background: var(--bg-pane);
-  /* A single lit top edge gives the panel depth without a gradient or a glow,
-     and the drop shadow lifts the whole window off the desktop. */
+  background: var(--surface-glass);
+  /* The face is translucent and blurred, so the corner glow and the dot grid of
+     the desktop show through as a soft haze instead of a flat edge. The single
+     lit top edge and the drop shadow keep the window sitting above the canvas. */
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  backdrop-filter: blur(12px) saturate(1.15);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 20px 48px -30px rgba(0, 0, 0, 0.95);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 22px 52px -30px rgba(0, 0, 0, 0.98);
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease;
 }
+
+/* No @supports fallback on purpose. The face is 94% opaque, so in a browser
+   without backdrop-filter the dot grid bleeds through at well under 1% contrast
+   — invisible, not noise behind the text. A guarded fallback is worse here: the
+   CSS minifier rewrites the `-webkit-` branch of a feature query, which would
+   hand Safari 16/17 the opaque pane even though their prefixed filter works. */
 
 /* The window that owns the page: a brighter frame, a ring on the portrait and a
    larger name carry it. No extra line, no extra colour. */
 .tile--profile {
-  border-color: var(--ribbon);
+  border-color: var(--border-pane-strong);
+}
+
+/* A tiling manager lights the frame of the window under the pointer. This is the
+   only hover that touches chrome, and it stops at the edge: the content keeps its
+   own hover states. Pointer devices only, so a tap never leaves a window stuck
+   lit. */
+@media (hover: hover) {
+  .tile:hover {
+    border-color: var(--border-active);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 1px var(--halo-active),
+      0 24px 56px -30px rgba(0, 0, 0, 0.98),
+      0 0 34px -12px var(--border-active);
+  }
 }
 
 .tile--profile .avatar {
@@ -220,8 +275,9 @@
   padding: 8px 12px;
   border-bottom: 1px solid var(--rule);
   /* Window chrome one step above the panel body: the bar reads as the frame the
-     content sits inside, not as another strip of content. */
-  background: var(--bg-pane-hi);
+     content sits inside, not as another strip of content. Lighter than the face
+     but still translucent, so the blur behind it stays continuous. */
+  background: var(--surface-chrome);
 }
 
 .dots {
@@ -576,6 +632,10 @@
   position: relative;
   display: grid;
   flex: 1 1 auto;
+  /* The breath between the root and its first branch. Named because the spine has
+     to reach back up through exactly this much to meet `~/stack`. */
+  --root-gap: 1em;
+  margin-top: var(--root-gap);
   grid-template-columns: 1.2em max-content minmax(0, 1fr);
   column-gap: 1em;
   row-gap: 6px;
@@ -584,13 +644,15 @@
   align-content: space-between;
 }
 
-/* One spine for the whole tree, from just under `~/stack` down to the centre of
-   the last branch. Drawing it here and not per row is what keeps it unbroken
+/* One spine for the whole tree: it starts at the baseline of `~/stack` — climbing
+   back through the gap above and through the line box's own descent, which would
+   otherwise leave it floating a few pixels under the root — and runs to the centre
+   of the last branch. Drawing it here and not per row is what keeps it unbroken
    when the rows are far apart. */
 .tree-list::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: calc(-1 * var(--root-gap) - 0.3em);
   bottom: 0.725em;
   left: 0;
   width: 1px;
@@ -606,6 +668,10 @@
    row. A row whose values wrap is two lines tall, and centring the folder in it
    left the name floating between them, off its own connector. */
 .tree-label {
+  /* The folder's hue, derived from its own mark and softened a step. Shared here
+     so the label and a generated mark that paints with currentColor agree; the
+     brand marks carry their own palette and ignore it. */
+  --folder-tint: color-mix(in oklab, var(--tint, var(--accent-gold)) 90%, transparent);
   display: flex;
   align-self: start;
   align-items: center;
@@ -630,12 +696,18 @@
 
 .tree-icon {
   color: var(--text-dim);
+  /* A generated mark takes the folder's hue; a brand mark paints itself. */
+  color: var(--folder-tint);
 }
 
-/* Folders are the categories of the file, so they take the syntax accent; the
-   cyan is kept for paths and the handle. */
+/* Folders are the categories of the file, so each one borrows the hue of its own
+   mark, desaturated to a pastel and held one step under full strength: seven
+   quiet hints instead of seven identical gold labels, without turning the pane
+   into a rainbow. The colour is content, not chrome — a section added to
+   content.ts gets its own by being listed there. */
 .tree-dir {
   color: var(--accent-gold);
+  color: var(--folder-tint);
   font-weight: 400;
   white-space: nowrap;
 }
@@ -1098,6 +1170,50 @@
 
 /* The right end of the bar carries real information only: the environment, the
    shortcut that opens the palette, and the local time. */
+
+/* ---- toast ---- */
+
+/* The confirmation of a copy, written like the echo a shell would print: one mark,
+   one line, no card. It borrows the window's own surface and the azure rule that
+   marks anything interactive. */
+.toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.45em 0.9em;
+  border: 1px solid var(--border-pane);
+  border-left: 2px solid var(--accent-azure);
+  border-radius: 3px;
+  background: var(--bg-pane-hi);
+  color: var(--text-soft);
+  font-size: 0.867rem;
+  box-shadow: 0 20px 44px -26px rgba(0, 0, 0, 0.95);
+  transform: translateX(-50%);
+  animation: toast-in 150ms ease both;
+}
+
+.toast-mark {
+  color: var(--accent-gold);
+}
+
+.toast-mark--error {
+  color: var(--accent-rose);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
 
 /* ---- command palette ---- */
 

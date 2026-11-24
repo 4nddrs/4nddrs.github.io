@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { EXPERIENCE, IDENTITY, INTERESTS, LINKS, PROJECTS, STACK, roleSlug } from "./content";
 import { ExperienceView } from "./ExperienceView";
 import { Palette } from "./Palette";
@@ -112,7 +112,9 @@ export default function App() {
   const [open, setOpen] = useState<Target>(() => targetFromHash());
   const [preview, setPreview] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [announce, setAnnounce] = useState("");
+  /* The confirmation carries its own state: a copy that fails is not a copy that
+     worked, and the toast says which one happened. */
+  const [announce, setAnnounce] = useState<{ text: string; error: boolean } | null>(null);
   const [palette, setPalette] = useState(false);
   const copyTimer = useRef<number | null>(null);
 
@@ -181,23 +183,23 @@ export default function App() {
     }
 
     if (!ok) {
-      setAnnounce(`Could not copy ${link.value}`);
+      setAnnounce({ text: `could not copy ${link.value}`, error: true });
       if (copyTimer.current) window.clearTimeout(copyTimer.current);
       copyTimer.current = window.setTimeout(() => {
-        setAnnounce("");
+        setAnnounce(null);
         copyTimer.current = null;
-      }, 2200);
+      }, 2400);
       return;
     }
 
     setCopied(link.key);
-    setAnnounce(`${link.value} copied to clipboard`);
+    setAnnounce({ text: `${link.value} copied`, error: false });
     if (copyTimer.current) window.clearTimeout(copyTimer.current);
     copyTimer.current = window.setTimeout(() => {
       setCopied(null);
-      setAnnounce("");
+      setAnnounce(null);
       copyTimer.current = null;
-    }, 1600);
+    }, 1800);
   }, []);
 
   const openProject = open?.kind === "project" ? PROJECT_BY_SLUG.get(open.slug) : undefined;
@@ -264,7 +266,11 @@ export default function App() {
               <p className="tree-root">~/stack</p>
               <ul className="tree-list">
                 {STACK.map((section) => (
-                  <li className="tree-row" key={section.section}>
+                  <li
+                    className="tree-row"
+                    key={section.section}
+                    style={{ "--tint": section.tint } as CSSProperties}
+                  >
                     {/* The elbow is drawn, not typed: the spine is one element, so
                                               it stays continuous no matter how far apart the rows land. */}
                     <span className="tree-graph" aria-hidden="true" />
@@ -355,9 +361,6 @@ export default function App() {
                 </li>
               ))}
             </ul>
-            <p className="sr-only" aria-live="polite">
-              {announce}
-            </p>
           </Tile>
         </div>
         <div className="mosaic-col">
@@ -445,6 +448,19 @@ export default function App() {
       {openProject ? <ProjectView project={openProject} onClose={closeProject} /> : null}
       {openRole ? <ExperienceView role={openRole} onClose={closeProject} /> : null}
       <Palette open={palette} onClose={closePalette} />
+
+      {/* A shell echo, not a floating card: one mark, one line, gone. */}
+      {announce ? (
+        <p className="toast" role="status">
+          <span
+            className={`toast-mark${announce.error ? " toast-mark--error" : ""}`}
+            aria-hidden="true"
+          >
+            {announce.error ? "\u2715" : "\u2713"}
+          </span>
+          {announce.text}
+        </p>
+      ) : null}
     </main>
   );
 }
