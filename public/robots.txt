@@ -1,0 +1,6 @@
+# Nothing here is private: the whole document is meant to be found. The sitemap
+# line is the only part a crawler cannot infer on its own.
+User-agent: *
+Allow: /
+
+Sitemap: https://4nddrs.github.io/sitemap.xml

@@ -5,6 +5,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><!-- figma:title --></title>
+    <!-- The canonical is the deploy origin, not a derived value: the page is one
+         document served from the root of 4nddrs.github.io. Moving to a custom
+         domain means changing this line, the same URL in sitemap.xml and the
+         Sitemap line in robots.txt together. -->
+    <link rel="canonical" href="https://4nddrs.github.io/" />
+    <!-- Structured data in the served HTML rather than after hydration: this is
+         the one description of the person a crawler gets without running the
+         bundle. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Andrés Menchaca",
+        "alternateName": "4nddrs",
+        "url": "https://4nddrs.github.io/",
+        "image": "https://4nddrs.github.io/4nddrs-avatar.jpg",
+        "jobTitle": "Systems Engineer",
+        "description": "Systems engineer specializing in Python backend and high-performance architectures. Linux-first, building scalable APIs and CLI tools.",
+        "knowsAbout": [
+          "Python",
+          "Go",
+          "FastAPI",
+          "PostgreSQL",
+          "Linux",
+          "Systems architecture",
+          "Robotics"
+        ],
+        "sameAs": [
+          "https://github.com/4nddrs",
+          "https://www.linkedin.com/in/4nddrs",
+          "https://x.com/4nddrs"
+        ]
+      }
+    </script>
     <!-- figma:head-end -->
   </head>
   <body>
