@@ -247,7 +247,7 @@ export default function App() {
             {/* The current role, read from content.ts: a status line, not a badge. */}
             <p className="status">
               <span className="status-dot" aria-hidden="true" />
-              building ai &amp; robotics tooling
+              {IDENTITY.status}
             </p>
             <div className="intro">
               {IDENTITY.intro.map((line) => (

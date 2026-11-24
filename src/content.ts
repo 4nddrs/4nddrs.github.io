@@ -16,7 +16,10 @@ export const IDENTITY = {
     "I enjoy understanding how things work and building software that makes them work better.",
     "Backend engineering, Linux, system architecture, automation and the intersection of software and AI.",
   ],
-  philosophy: "I like simple solutions to complex problems.",
+  philosophy: "Solving hard problems for people I care about.",
+  /* The live line under the name: what he is doing now, in his own words. Kept
+     here so the page never carries a status the content file does not. */
+  status: "nice && simple",
 };
 
 export const EMAIL = "4nddrs.dev@gmail.com";
