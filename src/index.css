@@ -255,12 +255,12 @@
 }
 
 .tile--profile .avatar {
-  /* The ring that sets the portrait apart: the same celeste the page already
-     uses to mark an active window, at a strength that reads as a rim and not as
-     a second frame. */
+  /* The ring that sets the portrait apart, taken from the handle's own azure so
+     the two read as one colour at two weights, and held at half strength so it
+     stays a rim rather than a second frame. */
   box-shadow:
     0 0 0 1px var(--border-pane),
-    0 0 0 3px rgba(125, 207, 255, 0.72);
+    0 0 0 3px color-mix(in oklab, var(--accent-azure) 50%, transparent);
 }
 
 /* Every panel keeps the same edge; the hierarchy is carried by type and
