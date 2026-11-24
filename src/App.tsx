@@ -36,11 +36,16 @@ function Tile({
   command,
   area,
   aside,
+  footer,
   children,
 }: {
   command: string;
   area: string;
   aside?: string;
+  /* Chrome that belongs to the window and not to its content, like a statusline:
+     rendered outside the body so it never scrolls with the buffer and never loses
+     its right edge to a scrollbar. */
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   /* The command is the window's visible title; the accessible name is the same
@@ -66,6 +71,7 @@ function Tile({
         {aside ? <span className="tile-aside">{aside}</span> : null}
       </div>
       <div className="tile-body">{children}</div>
+      {footer}
     </section>
   );
 }
@@ -400,7 +406,29 @@ export default function App() {
               </ul>
             )}
           </Tile>
-          <Tile command="nvim interests.md" area="interests" aside={`${INTERESTS.length} topics`}>
+          <Tile
+            command="nvim interests.md"
+            area="interests"
+            aside={`${INTERESTS.length} topics`}
+            footer={
+              /* lualine: a mode block, the buffer, the file type and the count,
+                 with the angled segments the real statusline draws. It is window
+                 chrome, so it sits on the window and not in the scrollable body:
+                 inside the body a classic scrollbar steals its right edge and the
+                 bar stops short of the corner. */
+              <p className="md-status">
+                <span className="md-seg md-seg--light">NORMAL</span>
+                <span className="md-seg">
+                  <span className="md-flag" aria-hidden="true">
+                    {"\u2039"}
+                  </span>
+                  interests.md
+                </span>
+                <span className="md-seg md-seg--right">markdown</span>
+                <span className="md-seg md-seg--light">{INTERESTS.length}L</span>
+              </p>
+            }
+          >
             {/* A markdown buffer: gutter number, the `##` a heading keeps in
                                       source, and its note as a list item with a hanging indent so the
                                       wrapped line sits under the text and not under the bullet. The row
@@ -428,19 +456,6 @@ export default function App() {
                 </li>
               ))}
             </ul>
-            {/* lualine: a mode block, the buffer, the file type and the count,
-                with the angled segments the real statusline draws. */}
-            <p className="md-status">
-              <span className="md-seg md-seg--light">NORMAL</span>
-              <span className="md-seg">
-                <span className="md-flag" aria-hidden="true">
-                  {"\u2039"}
-                </span>
-                interests.md
-              </span>
-              <span className="md-seg md-seg--right">markdown</span>
-              <span className="md-seg md-seg--light">{INTERESTS.length}L</span>
-            </p>
           </Tile>
         </div>
       </div>
