@@ -1034,6 +1034,15 @@
   );
 }
 
+/* The last block closes flat against the frame, the way the mode block opens on
+   the other end. Without this the bar ends in a chevron and leaves a wedge of
+   background in the corner, which reads as a floating pill instead of the bottom
+   of a window. The left notch stays: that is the one the previous block tucks
+   into. */
+.md-status > .md-seg:last-child {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.5em 50%);
+}
+
 /* The mode block: light slab, dark text, the way lualine prints NORMAL. */
 .md-seg--light {
   background: #9db6e0;
