@@ -255,12 +255,12 @@
 }
 
 .tile--profile .avatar {
-  /* The ring that sets the portrait apart. A deep blue-violet rather than the
-     green it used to be: it belongs to the page's own azure and violet, and at
-     this alpha it reads as a rim, not as a second frame. */
+  /* The ring that sets the portrait apart: the same celeste the page already
+     uses to mark an active window, at a strength that reads as a rim and not as
+     a second frame. */
   box-shadow:
     0 0 0 1px var(--border-pane),
-    0 0 0 3px rgba(122, 111, 200, 0.45);
+    0 0 0 3px rgba(125, 207, 255, 0.72);
 }
 
 /* Every panel keeps the same edge; the hierarchy is carried by type and
