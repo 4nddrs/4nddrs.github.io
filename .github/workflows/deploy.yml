@@ -1,0 +1,56 @@
+# Publishing contract: `main` is the branch GitHub Pages serves. The build runs
+# exactly what a local `pnpm build` runs, on the toolchain `.mise.toml` pins, and
+# uploads `dist/` as the Pages artifact.
+#
+# Nothing here needs a base path. The repository is named 4nddrs.github.io, which
+# is what puts the site at the domain root; that root is also why the absolute
+# `/fonts/`, `/4nddrs-avatar.jpg` and `/CV_andresMenchaca.pdf` references in
+# public/ resolve without a rewrite. Renaming the repo to anything else would move
+# the site under /<repo>/ and break every one of them, so keep the name and the
+# base in vite.config.ts at "/" together.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time, and never cancel one mid-flight: a cancelled deploy can
+# leave Pages serving the previous artifact with nothing saying why.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
